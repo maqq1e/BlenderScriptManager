@@ -1,8 +1,6 @@
 import bpy
-import os
 import importlib.util
-import json
-from .defers import jsonImport, generateTemplatesList
+from .defers import jsonImport, generateTemplatesList, addTemplate, removeTemplate, addScript, removeScript
 
 from .TemplatesEnum import TemplateClasses, TemplateProps, delTemplateProps
 # from .ScriptsEnum import ScriptsClasses, ScriptsProps
@@ -28,6 +26,14 @@ class InfoTab(bpy.types.Panel):
     bl_category = "Script Manager" 
 
     def draw(self, context):
+        # Get the file name from the addon preferences
+        preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
+
+        # Set dir if not exist
+        if preferences.script_dir == "":
+            layout.label(text="Please set the script directory in preferences.")
+            layout.operator(OpenAddonPreferencesOperator.bl_idname, text="Open Addon Preferences", icon='PREFERENCES')
+            return None
         
         layout = self.layout
         
@@ -38,6 +44,7 @@ class InfoTab(bpy.types.Panel):
 
         if len(context.scene.templates_collection) == 0:
             layout.label(text="You need to create your first template")
+            layout.operator(LoadTemplates.bl_idname, text="Load Templates")
             return None
         
 
@@ -52,7 +59,9 @@ class InfoTab(bpy.types.Panel):
         if len(context.scene.templates_collection[template_index].scripts) != 0:
             for script in context.scene.templates_collection[template_index].scripts:
                 row = box.row()
-                row.label(text=script.name)
+                op = row.operator(RunScriptsOperator.bl_idname, text=script.name, icon="IMPORT")
+                op.script_dir = preferences.script_dir
+                op.script_name = script.path
                 op = row.operator("scripts.remove_item", text="", icon="REMOVE")
                 script_index = context.scene.templates_collection[template_index].scripts.find(script.name)
                 op.template_index = template_index
@@ -62,49 +71,28 @@ class InfoTab(bpy.types.Panel):
         op = box.operator("scripts.add_item", text="", icon="ADD")
         op.template_index = template_index
 
-
-        # # Get the file name from the addon preferences
-        # preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
-
-        # script_dir = preferences.script_dir
-        # templates_list = preferences.templates_list
-        # templates_list = jsonImport(script_dir, "templates.json")
-        # templates_list = templates_list['templates']
-
-        
-        # # Set dir if not exist
-        # if preferences.script_dir == "":
-        #     layout.label(text="Please set the script directory in preferences.")
-        #     layout.operator(OpenAddonPreferencesOperator.bl_idname, text="Open Addon Preferences", icon='PREFERENCES')
-        #     return None
-        
-        # for template in templates_list:
-        #     layout.label(text = template['name'])
-        #     box = layout.box()
-        #     for script in template['scripts']:
-        #         box.label(text = script['name'])
-        #         op = box.operator("wm.run_scripts_operator", text=script['name'])
-        #         op.script_dir = script_dir
-        #         op.script_name = script['path']
-
-        # # Add a button to run the operation
-        # layout.operator("wm.run_scripts_operator", text="Run Scripts")
-
-
-class SelectTemplate(bpy.types.Operator):
-    bl_idname = "wm.select_template"
-    bl_label = "Select Template"
-    bl_property = "template"
-
+class LoadTemplates(bpy.types.Operator):
+    bl_idname = "wm.load_templates"
+    bl_label = "Load Template"
+    
     def execute(self, context):
+        # Get the file name from the addon preferences
+        preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
 
-        self.report({'INFO'}, "Selected:" + self.template)
+        layout = self.layout
+
+        script_dir = preferences.script_dir
+        templates_list = preferences.templates_list
+        templates_list = jsonImport(script_dir, "templates.json")
+        templates_list = templates_list['templates']
+        
+        for template in templates_list:
+            addTemplate(context, template['name'])
+            for script in template['scripts']:
+                template_index = context.scene.templates_collection.find(context.scene.Templates)
+                addScript(context, template_index, script['name'], script['description'], script['icon'], script['path'])
+
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-
-        context.window_manager.invoke_search_popup(self)
-        return {'RUNNING_MODAL'}
 
 
 # Define the operator that will search and run the Python scripts
@@ -142,7 +130,7 @@ UsesClasses = [
     InfoTab,
     OpenAddonPreferencesOperator,
     RunScriptsOperator,
-    SelectTemplate
+    LoadTemplates
 ]
 
 UsesClasses.extend(TemplateClasses)

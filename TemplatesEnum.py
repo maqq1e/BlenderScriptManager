@@ -1,4 +1,5 @@
 import bpy
+from .defers import addTemplate, removeTemplate, addScript, removeScript
 
 
 class Scripts(bpy.types.PropertyGroup):
@@ -30,16 +31,7 @@ class AddTemplateOperator(bpy.types.Operator):
     
     def execute(self, context):
 
-        new_name = "New Template"
-
-        if len(context.scene.templates_collection) > 0:
-            new_name = context.scene.templates_collection[-1].name + " 1"
-        
-        template = context.scene.templates_collection.add()
-
-        template.name = new_name
-
-        context.scene.Templates = template.name
+        addTemplate(context)
 
         return {'FINISHED'}
     
@@ -51,11 +43,7 @@ class RemoveTemplateOperator(bpy.types.Operator):
     
     def execute(self, context):
         
-        if len(context.scene.templates_collection) > 0:
-            context.scene.templates_collection.remove(self.index)
-            
-        if len(context.scene.templates_collection) > 0:
-            bpy.context.scene.Templates = bpy.context.scene.templates_collection[0].name
+        removeTemplate(context, self.index)
 
         return {'FINISHED'}
     
@@ -69,13 +57,7 @@ class AddScriptOperator(bpy.types.Operator):
 
     def execute(self, context):
         
-        template = context.scene.templates_collection[self.template_index]
-        scripts = template.scripts.add()
-
-        scripts.name = "Test"
-        scripts.description = "Add Cube"
-        scripts.icon = "PREFERENCE"
-        scripts.path = "Test.py"
+        addScript(context, self.template_index)
 
         return {'FINISHED'}
     
@@ -88,8 +70,7 @@ class RemoveScriptOperator(bpy.types.Operator):
     
     def execute(self, context):
         
-        if len(context.scene.templates_collection[self.template_index].scripts) > 0:
-            context.scene.templates_collection[self.template_index].scripts.remove(self.script_index)
+        removeScript(context, self.template_index, self.script_index)
 
         return {'FINISHED'}
 
