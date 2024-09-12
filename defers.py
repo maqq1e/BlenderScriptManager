@@ -74,18 +74,27 @@ def removeTemplate(context, index):
 
 def addScript(context, template_index, name = "Test", description = "Test Do", icon = "PREFERENCES", path = "Test.py"):
     template = context.scene.templates_collection[template_index]
-    scripts = template.scripts.add()
+    script = template.scripts.add()
 
-    scripts.name = name
-    scripts.description = description
-    scripts.icon = icon
-    scripts.path = path
+    script.name = name
+    script.description = description
+    script.icon = icon
+    script.path = path
 
 def removeScript(context, template_index, script_index):
 
     if len(context.scene.templates_collection[template_index].scripts) > 0:
         context.scene.templates_collection[template_index].scripts.remove(script_index)
-        
+ 
+def editScript(context, template_index, script_index, name = "Test", description = "Test Do", icon = "PREFERENCES", path = "Test.py"):
+    template = context.scene.templates_collection[template_index]
+    script = template.scripts[script_index]
+
+    script.name = name
+    script.description = description
+    script.icon = icon
+    script.path = path
+       
 def getListOfScripts(self, context):
     
     preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences

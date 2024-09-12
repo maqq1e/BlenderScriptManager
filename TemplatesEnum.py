@@ -1,5 +1,5 @@
 import bpy
-from .defers import addTemplate, removeTemplate, addScript, removeScript, getListOfScripts
+from .defers import addTemplate, removeTemplate, addScript, removeScript, editScript, getListOfScripts
 from .GLOBAL import icons
 
 
@@ -93,6 +93,34 @@ class RemoveScriptOperator(bpy.types.Operator):
 
         return {'FINISHED'}
     
+class EditScriptOperator(bpy.types.Operator):
+    bl_idname = "scripts.edit_item"
+    bl_label = "Remove Item"
+    
+    template_index: bpy.props.IntProperty(options={'HIDDEN'})
+    script_index: bpy.props.IntProperty(options={'HIDDEN'})
+
+    name: bpy.props.StringProperty(name="Button Name")
+
+    description: bpy.props.StringProperty(name="Description")
+
+    icon: bpy.props.EnumProperty(name="Icons", items=icons)
+
+    path: bpy.props.EnumProperty(name="Scripts", items=getListOfScripts)
+    
+    def execute(self, context):
+        
+        editScript(context, self.template_index, self.script_index, self.name, self.description, self.icon, self.path)
+        
+        context.scene.isSave = True
+
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+
+        return context.window_manager.invoke_props_dialog(self)
+    
+    
 
 TemplateClasses = [
     Scripts,
@@ -100,7 +128,8 @@ TemplateClasses = [
     AddTemplateOperator,
     RemoveTemplateOperator,
     AddScriptOperator,
-    RemoveScriptOperator
+    RemoveScriptOperator,
+    EditScriptOperator
 ]
 
 def TemplateProps():
