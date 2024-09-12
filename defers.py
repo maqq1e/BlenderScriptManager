@@ -82,5 +82,26 @@ def addScript(context, template_index, name = "Test", description = "Test Do", i
     scripts.path = path
 
 def removeScript(context, template_index, script_index):
+
     if len(context.scene.templates_collection[template_index].scripts) > 0:
         context.scene.templates_collection[template_index].scripts.remove(script_index)
+        
+def getListOfScripts(self, context):
+    
+    preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
+
+    directory = preferences.script_dir
+    
+    Enum_items = []
+    
+    for filename in os.listdir(directory):
+        # Check if the file ends with .py (Python files)
+            if filename.endswith(".py"):
+                data = filename
+                item = (data, data, data)
+                # Print the file name
+                Enum_items.append(item)
+        
+    return Enum_items
+    
+ 

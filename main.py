@@ -36,6 +36,7 @@ class InfoTab(bpy.types.Panel):
         
         layout = self.layout
         
+        # If Templates changed
         if context.scene.isSave:
             layout.operator(SaveTemplates.bl_idname, text="Save Templates", icon="EXPORT")
         
@@ -49,7 +50,6 @@ class InfoTab(bpy.types.Panel):
             layout.operator(LoadTemplates.bl_idname, text="Load Templates")
             return None
         
-
         template_index = context.scene.templates_collection.find(context.scene.Templates)
         op.index = template_index
 
