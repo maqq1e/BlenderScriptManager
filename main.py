@@ -1,9 +1,8 @@
 import bpy
 import importlib.util
-from .defers import jsonImport, generateTemplatesList, addTemplate, removeTemplate, addScript, removeScript
+from .defers import jsonImport, addTemplate, addScript, jsonExport, serializeDict
 
 from .TemplatesEnum import TemplateClasses, TemplateProps, delTemplateProps
-# from .ScriptsEnum import ScriptsClasses, ScriptsProps
 
 # Operator to open the add-on preferences
 class OpenAddonPreferencesOperator(bpy.types.Operator):
@@ -36,6 +35,9 @@ class InfoTab(bpy.types.Panel):
             return None
         
         layout = self.layout
+        
+        if context.scene.isSave:
+            layout.operator(SaveTemplates.bl_idname, text="Save Templates", icon="EXPORT")
         
         row = layout.row(align=True)
         row.prop(context.scene, "Templates", text="")
@@ -94,6 +96,20 @@ class LoadTemplates(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class SaveTemplates(bpy.types.Operator):
+    bl_idname = "wm.save_templates"
+    bl_label = "Save Template"
+    
+    def execute(self, context):
+        # Get the file name from the addon preferences
+        preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
+
+        jsonExport(preferences.script_dir, 'templates.json', serializeDict(context.scene.templates_collection))
+
+        context.scene.isSave = False
+
+        return {'FINISHED'}
+
 
 # Define the operator that will search and run the Python scripts
 class RunScriptsOperator(bpy.types.Operator):
@@ -130,11 +146,11 @@ UsesClasses = [
     InfoTab,
     OpenAddonPreferencesOperator,
     RunScriptsOperator,
-    LoadTemplates
+    LoadTemplates,
+    SaveTemplates
 ]
 
 UsesClasses.extend(TemplateClasses)
-# UsesClasses.extend(ScriptsClasses)
 
 def MainProps():
 

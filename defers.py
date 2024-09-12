@@ -1,5 +1,32 @@
 import bpy, json, os
 
+def serializeDict(data):
+
+    result = {
+        "templates": []
+    }
+
+    for el in data:
+
+        scripts_data = []
+
+        if len(el.scripts) > 0:
+            for script in el["scripts"]:
+                scripts_data.append({
+                    "name": script["name"],
+                    "description": script["description"],
+                    "icon": script["icon"],
+                    "path": script["path"],
+                })
+
+        result['templates'].append({
+            "name": el["name"],
+            "scripts": scripts_data
+        })
+
+
+    return result
+
 def jsonImport(path, file_name):
     # set output path and file name (set your own)
     save_path = path
@@ -14,22 +41,17 @@ def jsonImport(path, file_name):
 
     return variable
 
+def jsonExport(path, file_name, data):
+    # encode dict as JSON 
+    payload = json.dumps(data, indent=1, ensure_ascii=True)
 
-def generateTemplatesList():
-    # Get the file name from the addon preferences
-    preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
+    # set output path and file name (set your own)
+    save_path = path
+    file_name = os.path.join(save_path, file_name)
 
-    script_dir = preferences.script_dir
-
-    items = []
-    templates_list = jsonImport(script_dir, "templates.json")
-    templates_list = templates_list['templates']
-
-    for template in templates_list:
-        items.append((template["name"], template["name"], template["name"]))
-
-    return items
-
+    # write JSON file
+    with open(file_name, 'w') as outfile:
+        outfile.write(payload + '\n')
 
 def addTemplate(context, new_name = "New Template"):
 

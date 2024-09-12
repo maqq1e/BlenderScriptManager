@@ -33,6 +33,8 @@ class AddTemplateOperator(bpy.types.Operator):
 
         addTemplate(context)
 
+        context.scene.isSave = True
+
         return {'FINISHED'}
     
 class RemoveTemplateOperator(bpy.types.Operator):
@@ -44,6 +46,8 @@ class RemoveTemplateOperator(bpy.types.Operator):
     def execute(self, context):
         
         removeTemplate(context, self.index)
+
+        context.scene.isSave = True
 
         return {'FINISHED'}
     
@@ -59,6 +63,8 @@ class AddScriptOperator(bpy.types.Operator):
         
         addScript(context, self.template_index)
 
+        context.scene.isSave = True
+
         return {'FINISHED'}
     
 class RemoveScriptOperator(bpy.types.Operator):
@@ -71,6 +77,8 @@ class RemoveScriptOperator(bpy.types.Operator):
     def execute(self, context):
         
         removeScript(context, self.template_index, self.script_index)
+        
+        context.scene.isSave = True
 
         return {'FINISHED'}
 
@@ -86,6 +94,8 @@ TemplateClasses = [
 def TemplateProps():
     bpy.types.Scene.Templates = bpy.props.EnumProperty(items=get_template_items)
     bpy.types.Scene.templates_collection = bpy.props.CollectionProperty(type=TemplateName)
+
+    bpy.types.Scene.isSave = bpy.props.BoolProperty(default=False)
 
 def delTemplateProps():
 
