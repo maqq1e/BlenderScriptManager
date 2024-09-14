@@ -25,6 +25,9 @@ class InfoTab(bpy.types.Panel):
     bl_category = "Script Manager" 
 
     def draw(self, context):
+        ### --- GET PREFERENCES --- ###
+        ###############################
+        
         # Get the file name from the addon preferences
         preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
 
@@ -33,6 +36,9 @@ class InfoTab(bpy.types.Panel):
             layout.label(text="Please set the script directory in preferences.")
             layout.operator(OpenAddonPreferencesOperator.bl_idname, text="Open Addon Preferences", icon='PREFERENCES')
             return None
+        
+        ### --- SETUP TEMPLATES --- ###
+        ###############################
         
         layout = self.layout
         
@@ -60,32 +66,44 @@ class InfoTab(bpy.types.Panel):
 
         layout.prop(context.scene.templates_collection[context.scene.Templates], "name", text="Template Name: ")
 
-        
-        box = layout.box()
+        ### --- SCRIPTS LAYOUTS --- ###
+        ###############################
 
         if len(context.scene.templates_collection[template_index].scripts) != 0:
             for script in context.scene.templates_collection[template_index].scripts:
-                row = box.row()
-                op = row.operator(RunScriptsOperator.bl_idname, text=script.name, icon=script.icon)
-                op.script_dir = preferences.script_dir
-                op.script_name = script.path # Path is name of script
+                box = layout.box()
                 
-                script_index = context.scene.templates_collection[template_index].scripts.find(script.name)
+                ### --- SUBPANEL --- ###
                 
-                op = row.operator("scripts.edit_item", text="", icon="GREASEPENCIL")
-                op.template_index = template_index
-                op.script_index = script_index
-                op.name = script.name
-                op.description = script.description
-                op.icon = script.icon
-                op.path = script.path
+                panel_row = box.row()
+                icon = 'TRIA_DOWN' if script.status else 'TRIA_RIGHT'
+                panel_row.prop(script, "status", icon=icon, icon_only=True)
+                panel_row.label(text=script.name)
                 
-                op = row.operator("scripts.remove_item", text="", icon="REMOVE")
-                op.template_index = template_index
-                op.script_index = script_index
+                ########################
+                
+                if script.status:
+                    row = box.row()
+                    op = row.operator(RunScriptsOperator.bl_idname, text=script.name, icon=script.icon)
+                    op.script_dir = preferences.script_dir
+                    op.script_name = script.path # Path is name of script
+                    
+                    script_index = context.scene.templates_collection[template_index].scripts.find(script.name)
+                    
+                    op = row.operator("scripts.edit_item", text="", icon="GREASEPENCIL")
+                    op.template_index = template_index
+                    op.script_index = script_index
+                    op.name = script.name
+                    op.description = script.description
+                    op.icon = script.icon
+                    op.path = script.path
+                    
+                    op = row.operator("scripts.remove_item", text="", icon="REMOVE")
+                    op.template_index = template_index
+                    op.script_index = script_index
 
 
-        op = box.operator("scripts.add_item", text="", icon="ADD")
+        op = layout.operator("scripts.add_item", text="", icon="ADD")
         op.template_index = template_index
 
 class LoadTemplates(bpy.types.Operator):
@@ -109,7 +127,12 @@ class LoadTemplates(bpy.types.Operator):
             addTemplate(context, template['name'])
             for script in template['scripts']:
                 template_index = context.scene.templates_collection.find(context.scene.Templates)
-                addScript(context, template_index, script['name'], script['description'], script['icon'], script['path'])
+                addScript(context, template_index, 
+                          script['name'], 
+                          script['description'], 
+                          script['icon'], 
+                          script['path'], 
+                          status=True if script["status"] == 1 else False)
                 
         context.scene.isSave = False
         

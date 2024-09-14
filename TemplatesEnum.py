@@ -8,6 +8,7 @@ class Scripts(bpy.types.PropertyGroup):
     description: bpy.props.StringProperty()
     icon: bpy.props.StringProperty()
     path: bpy.props.StringProperty()
+    status: bpy.props.BoolProperty()
 
 class TemplateName(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty()

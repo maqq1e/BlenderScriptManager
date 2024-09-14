@@ -17,6 +17,7 @@ def serializeDict(data):
                     "description": script["description"],
                     "icon": script["icon"],
                     "path": script["path"],
+                    "status": script['status'],
                 })
 
         result['templates'].append({
@@ -72,7 +73,7 @@ def removeTemplate(context, index):
     if len(context.scene.templates_collection) > 0:
         bpy.context.scene.Templates = bpy.context.scene.templates_collection[0].name
 
-def addScript(context, template_index, name = "Test", description = "Test Do", icon = "PREFERENCES", path = "Test.py"):
+def addScript(context, template_index, name = "Test", description = "Test Do", icon = "PREFERENCES", path = "Test.py", status=False):
     template = context.scene.templates_collection[template_index]
     script = template.scripts.add()
 
@@ -80,6 +81,7 @@ def addScript(context, template_index, name = "Test", description = "Test Do", i
     script.description = description
     script.icon = icon
     script.path = path
+    script.status = status
 
 def removeScript(context, template_index, script_index):
 
