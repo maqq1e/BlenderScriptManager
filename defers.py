@@ -12,12 +12,24 @@ def serializeDict(data):
 
         if len(el.scripts) > 0:
             for script in el["scripts"]:
+                
+                arg_data = []
+                
+                for arg in script['args']:
+                    arg_data.append({
+                        "name": arg['name'],
+                        "description": arg['description'],
+                        "type": arg['type'],
+                        "default": arg['default']
+                    })
+                
                 scripts_data.append({
                     "name": script["name"],
                     "description": script["description"],
                     "icon": script["icon"],
                     "path": script["path"],
                     "status": script['status'],
+                    "args": arg_data
                 })
 
         result['templates'].append({
@@ -115,4 +127,25 @@ def getListOfScripts(self, context):
         
     return Enum_items
     
- 
+def addArgs(context, template_index, script_index, type, name = "Test Arg", description = "Test Arg Do", default= "10"):
+    template = context.scene.templates_collection[template_index]
+    script = template.scripts[script_index]
+    args = script.args
+    
+    arg = args.add()
+    
+    arg.name = name
+    arg.description = description
+    arg.type = type
+    arg.default = default
+    
+def editArgs(context, template_index, script_index, arg_index, type, name = "Test Arg", description = "Test Arg Do", default= "10"):
+    template = context.scene.templates_collection[template_index]
+    script = template.scripts[script_index]
+    arg = script.args[arg_index]
+    
+    arg.name = name
+    arg.description = description
+    arg.type = type
+    arg.default = default
+    

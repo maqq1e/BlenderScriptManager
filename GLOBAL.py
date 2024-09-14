@@ -817,3 +817,10 @@ icons = [
 ("EVENT_PAGEDOWN", "EVENT_PAGEDOWN", "", "EVENT_PAGEDOWN", 815),
 ("EVENT_RETURN", "EVENT_RETURN", "", "EVENT_RETURN", 816),
 ("EVENT_SPACEKEY", "EVENT_SPACEKEY", "", "EVENT_SPACEKEY", 817)]
+
+var_types = [
+    ("Test","bpy.props.BoolProperty()", "Desc"),
+    ("Test","bpy.props.FloatProperty()", "Desc"),
+    ("Test","bpy.props.IntProperty()", "Desc"),
+    ("Test","bpy.props.StringProperty()", "Desc"),
+]

@@ -2,7 +2,7 @@ import bpy
 import importlib.util
 from .defers import jsonImport, addTemplate, addScript, jsonExport, serializeDict
 
-from .TemplatesEnum import TemplateClasses, TemplateProps, delTemplateProps
+from .TemplatesEnum import TemplateClasses, TemplateProps, delTemplateProps, Args
 
 # Operator to open the add-on preferences
 class OpenAddonPreferencesOperator(bpy.types.Operator):
@@ -83,12 +83,45 @@ class InfoTab(bpy.types.Panel):
                 ########################
                 
                 if script.status:
+                    script_index = context.scene.templates_collection[template_index].scripts.find(script.name)    
+                    
+                    ### ---   ARGS LAYOUTS  --- ###
+                    ###############################
+                    args_box = box.box()
+                    
+                    for arg in script.args:
+                        arg_index = script.args.find(arg.name)    
+                        subbox = args_box.box()
+                        args_row = subbox.row()
+                        
+                        args_row.prop(arg, "name", text="Name")
+                        args_row.prop(arg, "default", text="Value")
+                        
+                        op = args_row.operator("args.edit_item", text="", icon="GREASEPENCIL")
+                        op.template_index = template_index
+                        op.script_index = script_index
+                        op.arg_index = arg_index
+                        op.name = arg.name
+                        op.description = arg.description
+                        op.type = arg.type
+                        op.default = arg.default
+                        
+                    op = args_box.operator("args.add_item", text="Add Argument", icon="ADD")
+                    op.template_index = template_index
+                    op.script_index = script_index
+                    
+                    
                     row = box.row()
                     op = row.operator(RunScriptsOperator.bl_idname, text=script.name, icon=script.icon)
                     op.script_dir = preferences.script_dir
                     op.script_name = script.path # Path is name of script
+                    for arg in script.args:
+                        ap = op.props.add()
+                        ap.name = arg.name
+                        ap.description = arg.description
+                        ap.type = arg.type
+                        ap.default = arg.default
                     
-                    script_index = context.scene.templates_collection[template_index].scripts.find(script.name)
                     
                     op = row.operator("scripts.edit_item", text="", icon="GREASEPENCIL")
                     op.template_index = template_index
@@ -161,10 +194,11 @@ class RunScriptsOperator(bpy.types.Operator):
 
     script_dir: bpy.props.StringProperty(name="Script Dir", default="")
     script_name: bpy.props.StringProperty(name="Script Name", default="")
-
+    
+    props: bpy.props.CollectionProperty(type=Args)
+    
     def execute(self, context):
         filepath = self.script_dir + self.script_name
-
 
         self.run_script(filepath)
         
@@ -179,13 +213,14 @@ class RunScriptsOperator(bpy.types.Operator):
         
         # Assuming there's a function named 'main' in each script
         if hasattr(module, "main"):
-            try:
-                module.main()  # Execute the 'main' function
+            try:                
+                module.main(self.props)  # Execute the 'main' function
             except Exception as e:
                 print(f"Error running main() in {filepath}: {e}")
-
+        
 
 UsesClasses = [
+    Args, # Need to refactory!
     InfoTab,
     OpenAddonPreferencesOperator,
     RunScriptsOperator,
