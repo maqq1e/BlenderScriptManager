@@ -1,6 +1,6 @@
 import bpy
 import importlib.util
-from .defers import jsonImport, addTemplate, addScript, jsonExport, serializeDict
+from .defers import jsonImport, addTemplate, addScript, addArgs, jsonExport, serializeDict
 
 from .TemplatesEnum import TemplateClasses, TemplateProps, delTemplateProps, Args
 
@@ -156,16 +156,31 @@ class LoadTemplates(bpy.types.Operator):
         
         context.scene.templates_collection.clear()
         
+        # Get List Item Index
+        template_index = 0
+        script_index = 0
+        
         for template in templates_list:
             addTemplate(context, template['name'])
             for script in template['scripts']:
-                template_index = context.scene.templates_collection.find(context.scene.Templates)
+                status = True if script["status"] == 1 else False
                 addScript(context, template_index, 
                           script['name'], 
                           script['description'], 
                           script['icon'], 
                           script['path'], 
-                          status=True if script["status"] == 1 else False)
+                          status)
+                for arg in script['args']:
+                    addArgs(context, template_index, script_index,
+                          arg['type'], 
+                          arg['name'], 
+                          arg['description'], 
+                          arg['default'])
+                
+                script_index = script_index + 1 # Increment Index 
+                
+            template_index = template_index + 1 # Increment Index 
+                    
                 
         context.scene.isSave = False
         
