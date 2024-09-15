@@ -819,8 +819,17 @@ icons = [
 ("EVENT_SPACEKEY", "EVENT_SPACEKEY", "", "EVENT_SPACEKEY", 817)]
 
 var_types = [
-    ("Test","bpy.props.BoolProperty()", "Desc"),
-    ("Test","bpy.props.FloatProperty()", "Desc"),
-    ("Test","bpy.props.IntProperty()", "Desc"),
-    ("Test","bpy.props.StringProperty()", "Desc"),
+    ("BOOL", "Bool", "bool"),
+    ("FLOAT", "Float", "float"),
+    ("INTEGER", "Integer", "integer"),
+    ("STRING", "String", "string"),
+    ("STRING_PATH", "Directory Path", "string_path"),
+]
+
+var_default_value = [
+    False,
+    1.5,
+    0,
+    "String",
+    "C:\\"
 ]

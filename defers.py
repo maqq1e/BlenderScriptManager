@@ -1,4 +1,19 @@
 import bpy, json, os
+from .GLOBAL import var_types,var_default_value
+
+def getVarType(types, id_type):
+    value = ""
+    index = 0
+    # I need to find only whole name, ignore substrings
+    str1 = " " + id_type + " "
+    
+    for vt in types:
+        str2 = " " + vt[0] + " "
+        if str1 in str2:
+            value = vt[2]
+            break
+        index = index + 1
+    return [value, index]
 
 def serializeDict(data):
 
@@ -16,11 +31,16 @@ def serializeDict(data):
                 arg_data = []
                 
                 for arg in script['args']:
+                    
+                    key = getVarType(var_types, arg['type'])[0]
+                    
+                    value = arg[key]      
+                    
                     arg_data.append({
                         "name": arg['name'],
                         "description": arg['description'],
                         "type": arg['type'],
-                        "default": arg['default']
+                        "value": value
                     })
                 
                 scripts_data.append({
@@ -127,7 +147,7 @@ def getListOfScripts(self, context):
         
     return Enum_items
     
-def addArgs(context, template_index, script_index, type, name = "Test Arg", description = "Test Arg Do", default= "10"):
+def addArgs(context, template_index, script_index, type, name = "Test Arg", description = "Test Arg Do", value=0):
     template = context.scene.templates_collection[template_index]
     script = template.scripts[script_index]
     args = script.args
@@ -137,9 +157,17 @@ def addArgs(context, template_index, script_index, type, name = "Test Arg", desc
     arg.name = name
     arg.description = description
     arg.type = type
-    arg.default = default
     
-def editArgs(context, template_index, script_index, arg_index, type, name = "Test Arg", description = "Test Arg Do", default= "10"):
+    key = getVarType(var_types, type)[0]
+    index = getVarType(var_types, type)[1]
+    
+    if value == 0:
+        value = var_default_value[index]
+    
+    arg[key] = value
+    
+    
+def editArgs(context, template_index, script_index, arg_index, type, name = "Test Arg", description = "Test Arg Do", value=0):
     template = context.scene.templates_collection[template_index]
     script = template.scripts[script_index]
     arg = script.args[arg_index]
@@ -147,5 +175,13 @@ def editArgs(context, template_index, script_index, arg_index, type, name = "Tes
     arg.name = name
     arg.description = description
     arg.type = type
-    arg.default = default
+    
+    key = getVarType(var_types, type)[0]
+        
+    arg[key] = value[key]
+    
+def removeArgs(context, template_index, script_index, arg_index):
+    template = context.scene.templates_collection[template_index]
+    script = template.scripts[script_index]
+    script.args.remove(arg_index)
     

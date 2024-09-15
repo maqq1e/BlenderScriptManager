@@ -1,6 +1,7 @@
 import bpy
 import importlib.util
-from .defers import jsonImport, addTemplate, addScript, addArgs, jsonExport, serializeDict
+from .defers import jsonImport, addTemplate, addScript, addArgs, jsonExport, serializeDict, getVarType
+from .GLOBAL import var_types
 
 from .TemplatesEnum import TemplateClasses, TemplateProps, delTemplateProps, Args
 
@@ -22,7 +23,7 @@ class InfoTab(bpy.types.Panel):
     bl_idname = "OBJECT_PT_custom_scripts_manager"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "Script Manager" 
+    bl_category = "Script Manager"
 
     def draw(self, context):
         ### --- GET PREFERENCES --- ###
@@ -86,7 +87,7 @@ class InfoTab(bpy.types.Panel):
                     script_index = context.scene.templates_collection[template_index].scripts.find(script.name)    
                     
                     ### ---   ARGS LAYOUTS  --- ###
-                    ###############################
+                    
                     args_box = box.box()
                     
                     for arg in script.args:
@@ -94,8 +95,9 @@ class InfoTab(bpy.types.Panel):
                         subbox = args_box.box()
                         args_row = subbox.row()
                         
-                        args_row.prop(arg, "name", text="Name")
-                        args_row.prop(arg, "default", text="Value")
+                        key = getVarType(var_types, arg.type)[0]
+                        
+                        args_row.prop(arg, key, text=arg.name)
                         
                         op = args_row.operator("args.edit_item", text="", icon="GREASEPENCIL")
                         op.template_index = template_index
@@ -104,12 +106,18 @@ class InfoTab(bpy.types.Panel):
                         op.name = arg.name
                         op.description = arg.description
                         op.type = arg.type
-                        op.default = arg.default
+                        _value = op.value.add()
+                        _value[key] = arg[key]
+                        
+                        op = args_row.operator("args.remove_item", text="", icon="REMOVE")
+                        op.template_index = template_index
+                        op.script_index = script_index
                         
                     op = args_box.operator("args.add_item", text="Add Argument", icon="ADD")
                     op.template_index = template_index
                     op.script_index = script_index
                     
+                    ###############################
                     
                     row = box.row()
                     op = row.operator(RunScriptsOperator.bl_idname, text=script.name, icon=script.icon)
@@ -120,7 +128,10 @@ class InfoTab(bpy.types.Panel):
                         ap.name = arg.name
                         ap.description = arg.description
                         ap.type = arg.type
-                        ap.default = arg.default
+                        
+                        key = getVarType(var_types, arg.type)[0]
+                        
+                        ap[key] = arg[key]
                     
                     
                     op = row.operator("scripts.edit_item", text="", icon="GREASEPENCIL")
@@ -175,7 +186,7 @@ class LoadTemplates(bpy.types.Operator):
                           arg['type'], 
                           arg['name'], 
                           arg['description'], 
-                          arg['default'])
+                          arg['value'])
                 
                 script_index = script_index + 1 # Increment Index 
                 
@@ -201,8 +212,9 @@ class SaveTemplates(bpy.types.Operator):
 
         return {'FINISHED'}
 
+### --- CUSTOM SCRIPTS EXECUTE --- ###
+######################################
 
-# Define the operator that will search and run the Python scripts
 class RunScriptsOperator(bpy.types.Operator):
     bl_idname = "wm.run_scripts_operator"
     bl_label = "Run Scripts in Directory"
@@ -225,11 +237,18 @@ class RunScriptsOperator(bpy.types.Operator):
         spec = importlib.util.spec_from_file_location("module.name", filepath)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
+
+        # Init Props value for script
+        args = {}
+        for prop in self.props:
+            key = getVarType(var_types, prop.type)[0]
+            value = prop[key]
+            args.update({prop.name: value})
         
         # Assuming there's a function named 'main' in each script
         if hasattr(module, "main"):
             try:                
-                module.main(self.props)  # Execute the 'main' function
+                module.main(args)  # Execute the 'main' function
             except Exception as e:
                 print(f"Error running main() in {filepath}: {e}")
         

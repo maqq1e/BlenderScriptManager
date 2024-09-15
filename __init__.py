@@ -6,8 +6,8 @@ bl_info = {
     "name": "Custom Script Manager",
     "author": "https://github.com/maqq1e",
     "description": "Easy way manage your custom scripts",
-    "blender": (4, 0, 0),
-    "version": (0, 1, 0),
+    "blender": (4, 2, 0),
+    "version": (0, 2, 0),
 }
 
 # Preferences Panel 

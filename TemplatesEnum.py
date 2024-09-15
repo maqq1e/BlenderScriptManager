@@ -1,12 +1,22 @@
 import bpy
-from .defers import addTemplate, removeTemplate, addScript, removeScript, editScript, addArgs, editArgs, getListOfScripts
+from .defers import addTemplate, removeTemplate, addScript, removeScript, editScript, addArgs, editArgs, removeArgs, getListOfScripts
 from .GLOBAL import icons, var_types
 
 class Args(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty()
     description: bpy.props.StringProperty()
     type: bpy.props.StringProperty()
-    default: bpy.props.StringProperty()
+    string: bpy.props.StringProperty(
+        name="Directory",
+        default="",
+        subtype='NONE'
+    )
+    integer: bpy.props.IntProperty()
+    string_path: bpy.props.StringProperty(
+        name="Directory",
+        default="",
+        subtype='DIR_PATH'
+    )
 
 class Scripts(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty()
@@ -47,7 +57,7 @@ class AddTemplateOperator(bpy.types.Operator):
     
 class RemoveTemplateOperator(bpy.types.Operator):
     bl_idname = "templates.remove_item"
-    bl_label = "Remove Item"
+    bl_label = "Remove Template?"
     
     index: bpy.props.IntProperty()
     
@@ -58,6 +68,10 @@ class RemoveTemplateOperator(bpy.types.Operator):
         context.scene.isSave = True
 
         return {'FINISHED'}
+    
+    def invoke(self, context, event):
+
+        return context.window_manager.invoke_confirm(self, event)
     
 class AddScriptOperator(bpy.types.Operator):
     bl_idname = "scripts.add_item"
@@ -87,7 +101,7 @@ class AddScriptOperator(bpy.types.Operator):
     
 class RemoveScriptOperator(bpy.types.Operator):
     bl_idname = "scripts.remove_item"
-    bl_label = "Remove Item"
+    bl_label = "Remove Script from Template?"
     
     template_index: bpy.props.IntProperty()
     script_index: bpy.props.IntProperty()
@@ -99,6 +113,10 @@ class RemoveScriptOperator(bpy.types.Operator):
         context.scene.isSave = True
 
         return {'FINISHED'}
+    
+    def invoke(self, context, event):
+
+        return context.window_manager.invoke_confirm(self, event)
     
 class EditScriptOperator(bpy.types.Operator):
     bl_idname = "scripts.edit_item"
@@ -134,21 +152,28 @@ class AddArgsOperator(bpy.types.Operator):
     template_index: bpy.props.IntProperty(options={'HIDDEN'})
     script_index: bpy.props.IntProperty(options={'HIDDEN'})
 
-    name: bpy.props.StringProperty(name="Args Name")
+    name: bpy.props.StringProperty(name="Name")
 
     description: bpy.props.StringProperty(name="Args Description")
 
     type: bpy.props.EnumProperty(name="Type", items=var_types)
 
-    default: bpy.props.StringProperty(name="Args Default Value")
-
     def execute(self, context):
         
-        addArgs(context, self.template_index, self.script_index, self.type, self.name, self.description, self.default)
+        addArgs(context, self.template_index, self.script_index, self.type, self.name, self.description)
 
         context.scene.isSave = True
 
         return {'FINISHED'}
+    
+    def draw(self, context):
+        
+        layout = self.layout
+        box = layout.box()
+        
+        box.prop(self, "name", text="Name")
+        box.prop(self, "description", text="Description")
+        box.prop(self, "type", text="Type")
     
     def invoke(self, context, event):
 
@@ -156,23 +181,54 @@ class AddArgsOperator(bpy.types.Operator):
 
 class EditArgsOperator(bpy.types.Operator):
     bl_idname = "args.edit_item"
-    bl_label = "Remove Arg Item"
+    bl_label = "Edit Arg Item"
     
     template_index: bpy.props.IntProperty(options={'HIDDEN'})
     script_index: bpy.props.IntProperty(options={'HIDDEN'})
     arg_index: bpy.props.IntProperty(options={'HIDDEN'})
 
-    name: bpy.props.StringProperty(name="Button Name")
+    name: bpy.props.StringProperty(name="Name")
 
     description: bpy.props.StringProperty(name="Description")
 
     type: bpy.props.EnumProperty(name="Type", items=var_types)
-
-    default: bpy.props.StringProperty(name="Args Default Value")
+    
+    value: bpy.props.CollectionProperty(type=Args, options={'HIDDEN'})
     
     def execute(self, context):
         
-        editArgs(context, self.template_index, self.script_index, self.arg_index, self.type, self.name, self.description, self.default)
+        editArgs(context, self.template_index, self.script_index, self.arg_index, self.type, self.name, self.description, self.value[0])
+        
+        context.scene.isSave = True
+
+        return {'FINISHED'}
+    
+    def draw(self, context):
+        
+        layout = self.layout
+        box = layout.box()
+        
+        box.prop(self, "name", text="Name")
+        box.prop(self, "description", text="Description")
+        disbox = layout.box()
+        disbox.prop(self, "type", text="Type")
+        disbox.enabled = False
+    
+    def invoke(self, context, event):
+
+        return context.window_manager.invoke_props_dialog(self)
+    
+class RemoveArgsOperator(bpy.types.Operator):
+    bl_idname = "args.remove_item"
+    bl_label = "Remove Argument from Script?"
+    
+    template_index: bpy.props.IntProperty(options={'HIDDEN'})
+    script_index: bpy.props.IntProperty(options={'HIDDEN'})
+    arg_index: bpy.props.IntProperty(options={'HIDDEN'})
+    
+    def execute(self, context):
+        
+        removeArgs(context, self.template_index, self.script_index, self.arg_index)
         
         context.scene.isSave = True
 
@@ -180,8 +236,7 @@ class EditArgsOperator(bpy.types.Operator):
     
     def invoke(self, context, event):
 
-        return context.window_manager.invoke_props_dialog(self)
-    
+        return context.window_manager.invoke_confirm(self, event)
     
 TemplateClasses = [
     Scripts,
@@ -192,7 +247,8 @@ TemplateClasses = [
     RemoveScriptOperator,
     EditScriptOperator,
     AddArgsOperator,
-    EditArgsOperator
+    EditArgsOperator,
+    RemoveArgsOperator
 ]
 
 def TemplateProps():
