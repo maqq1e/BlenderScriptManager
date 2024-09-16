@@ -6,12 +6,17 @@ class Args(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty()
     description: bpy.props.StringProperty()
     type: bpy.props.StringProperty()
+    bool: bpy.props.BoolProperty(options={'ANIMATABLE'})
+    bool_toggle: bpy.props.BoolProperty(options={'ANIMATABLE'})
+    float: bpy.props.FloatProperty()
+    float_slider: bpy.props.FloatProperty()
     string: bpy.props.StringProperty(
         name="Directory",
         default="",
         subtype='NONE'
     )
     integer: bpy.props.IntProperty()
+    integer_slider: bpy.props.IntProperty()
     string_path: bpy.props.StringProperty(
         name="Directory",
         default="",

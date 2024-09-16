@@ -820,16 +820,73 @@ icons = [
 
 var_types = [
     ("BOOL", "Bool", "bool"),
+    ("BOOL_TOGGLE", "Bool Toggle", "bool_toggle"),
     ("FLOAT", "Float", "float"),
+    ("FLOAT_SLIDER", "Float Slider", "float_slider"),
     ("INTEGER", "Integer", "integer"),
+    ("INTEGER_SLIDER", "Integer Slider", "integer_slider"),
     ("STRING", "String", "string"),
     ("STRING_PATH", "Directory Path", "string_path"),
 ]
 
 var_default_value = [
     False,
+    False,
     1.5,
+    1.5,
+    0,
     0,
     "String",
     "C:\\"
+]
+
+var_types_options = [
+    {
+        "hideName": True,
+        "slider":False,
+        "toggle":False,
+        "icon_only":False,
+    },
+    {
+        "hideName": False,
+        "slider":False,
+        "toggle":True,
+        "icon_only":False,
+    },
+    {
+        "hideName": False,
+        "slider":False,
+        "toggle":True,
+        "icon_only":False,
+    },
+    {
+        "hideName": True,
+        "slider":True,
+        "toggle":False,
+        "icon_only":False,
+    },
+    {
+        "hideName": True,
+        "slider":False,
+        "toggle":False,
+        "icon_only":False,
+    },
+    {
+        "hideName": True,
+        "slider":True,
+        "toggle":False,
+        "icon_only":False,
+    },
+    {
+        "hideName": True,
+        "slider":False,
+        "toggle":False,
+        "icon_only":False,
+    },
+    {
+        "hideName": True,
+        "slider":False,
+        "toggle":False,
+        "icon_only":False,
+    },
 ]

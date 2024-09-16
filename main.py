@@ -1,7 +1,7 @@
 import bpy
 import importlib.util
 from .defers import jsonImport, addTemplate, addScript, addArgs, jsonExport, serializeDict, getVarType
-from .GLOBAL import var_types
+from .GLOBAL import var_types, var_types_options
 
 from .TemplatesEnum import TemplateClasses, TemplateProps, delTemplateProps, Args
 
@@ -92,12 +92,18 @@ class InfoTab(bpy.types.Panel):
                     
                     for arg in script.args:
                         arg_index = script.args.find(arg.name)    
-                        subbox = args_box.box()
-                        args_row = subbox.row()
+                        args_row = args_box.row()
                         
-                        key = getVarType(var_types, arg.type)[0]
+                        varType = getVarType(var_types, arg.type)
+                        key = varType[0]
+                        index = varType[1]
+                        option = var_types_options[index]
                         
-                        args_row.prop(arg, key, text=arg.name)
+                        args_row.prop(arg, key, text="" if option['hideName'] else arg.name, 
+                                      slider=option['slider'],
+                                      toggle=option['toggle'],
+                                      icon_only=option['icon_only']
+                                      )
                         
                         op = args_row.operator("args.edit_item", text="", icon="GREASEPENCIL")
                         op.template_index = template_index
@@ -112,6 +118,7 @@ class InfoTab(bpy.types.Panel):
                         op = args_row.operator("args.remove_item", text="", icon="REMOVE")
                         op.template_index = template_index
                         op.script_index = script_index
+                        op.arg_index = arg_index
                         
                     op = args_box.operator("args.add_item", text="Add Argument", icon="ADD")
                     op.template_index = template_index

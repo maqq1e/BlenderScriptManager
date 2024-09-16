@@ -158,8 +158,9 @@ def addArgs(context, template_index, script_index, type, name = "Test Arg", desc
     arg.description = description
     arg.type = type
     
-    key = getVarType(var_types, type)[0]
-    index = getVarType(var_types, type)[1]
+    varType = getVarType(var_types, type)
+    key = varType[0]
+    index = varType[1]
     
     if value == 0:
         value = var_default_value[index]
