@@ -72,6 +72,7 @@ class InfoTab(bpy.types.Panel):
 
         if len(context.scene.templates_collection[template_index].scripts) != 0:
             for script in context.scene.templates_collection[template_index].scripts:
+                
                 box = layout.box()
                 
                 ### --- SUBPANEL --- ###
@@ -79,21 +80,21 @@ class InfoTab(bpy.types.Panel):
                 panel_row = box.row()
                 icon = 'TRIA_DOWN' if script.status else 'TRIA_RIGHT'
                 panel_row.prop(script, "status", icon=icon, icon_only=True)
-                panel_row.label(text=script.name)
                 
                 ########################
                 
-                if script.status:
-                    script_index = context.scene.templates_collection[template_index].scripts.find(script.name)    
+                script_index = context.scene.templates_collection[template_index].scripts.find(script.name)
+                
+                if script.status: 
                     
                     ### ---   ARGS LAYOUTS  --- ###
                     
-                    args_box = box.box()
-                    
                     for arg in script.args:
                         arg_index = script.args.find(arg.name)
+                        
+                        box.separator(factor=0.3, type="LINE")
                            
-                        args_row = args_box.row()
+                        args_row = box.row()
                                                                         
                         varType = getVarType(var_types, arg.type)
                         key = varType[0]
@@ -132,7 +133,7 @@ class InfoTab(bpy.types.Panel):
                                         icon_only=option['icon_only']
                                         )
                         
-                        op = args_row.operator("args.edit_item", text="", icon="GREASEPENCIL")
+                        op = args_row.operator("args.edit_item", text="", icon="TOOL_SETTINGS")
                         op.template_index = template_index
                         op.script_index = script_index
                         op.arg_index = arg_index
@@ -147,38 +148,36 @@ class InfoTab(bpy.types.Panel):
                         op.script_index = script_index
                         op.arg_index = arg_index
                         
-                    op = args_box.operator("args.add_item", text="Add Argument", icon="ADD")
+                    op = box.operator("args.add_item", text="Add Argument", icon="ADD")
                     op.template_index = template_index
                     op.script_index = script_index
                     
                     ###############################
                     
-                    row = box.row()
-                    op = row.operator(RunScriptsOperator.bl_idname, text=script.name, icon=script.icon)
-                    op.script_dir = preferences.script_dir
-                    op.script_name = script.path # Path is name of script
-                    for arg in script.args:
-                        ap = op.props.add()
-                        ap.name = arg.name
-                        ap.description = arg.description
-                        ap.type = arg.type
-                        
-                        key = getVarType(var_types, arg.type)[0]
-                        
-                        ap[key] = arg[key]
+                op = panel_row.operator(RunScriptsOperator.bl_idname, text=script.name, icon=script.icon)
+                op.script_dir = preferences.script_dir
+                op.script_name = script.path # Path is name of script
+                for arg in script.args:
+                    ap = op.props.add()
+                    ap.name = arg.name
+                    ap.description = arg.description
+                    ap.type = arg.type
                     
+                    key = getVarType(var_types, arg.type)[0]
                     
-                    op = row.operator("scripts.edit_item", text="", icon="GREASEPENCIL")
-                    op.template_index = template_index
-                    op.script_index = script_index
-                    op.name = script.name
-                    op.description = script.description
-                    op.icon = script.icon
-                    op.path = script.path
+                    ap[key] = arg[key]
                     
-                    op = row.operator("scripts.remove_item", text="", icon="REMOVE")
-                    op.template_index = template_index
-                    op.script_index = script_index
+                op = panel_row.operator("scripts.edit_item", text="", icon="GREASEPENCIL")
+                op.template_index = template_index
+                op.script_index = script_index
+                op.name = script.name
+                op.description = script.description
+                op.icon = script.icon
+                op.path = script.path
+                
+                op = panel_row.operator("scripts.remove_item", text="", icon="REMOVE")
+                op.template_index = template_index
+                op.script_index = script_index
 
 
         op = layout.operator("scripts.add_item", text="", icon="ADD")
