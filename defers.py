@@ -1,5 +1,7 @@
-import bpy, json, os
-from .GLOBAL import var_types,var_default_value
+import bpy, json, os, importlib
+from .interfaces import var_types, var_default_value
+
+### GLOBALS Variables Control
 
 def getVarType(types, id_type):
     value = ""
@@ -14,6 +16,8 @@ def getVarType(types, id_type):
             break
         index = index + 1
     return [value, index]
+
+### JSON Data Control
 
 def serializeDict(data):
 
@@ -86,6 +90,8 @@ def jsonExport(path, file_name, data):
     with open(file_name, 'w') as outfile:
         outfile.write(payload + '\n')
 
+### Templates Control
+
 def addTemplate(context, new_name = "New Template"):
 
     if new_name == "New Template":
@@ -104,6 +110,8 @@ def removeTemplate(context, index):
             
     if len(context.scene.templates_collection) > 0:
         bpy.context.scene.Templates = bpy.context.scene.templates_collection[0].name
+
+### Scripts Control
 
 def addScript(context, template_index, name = "Test", description = "Test Do", icon = "PREFERENCES", path = "Test.py", status=False):
     template = context.scene.templates_collection[template_index]
@@ -130,7 +138,7 @@ def editScript(context, template_index, script_index, name = "Test", description
     script.path = path
        
 def getListOfScripts(self, context):
-    
+    """Get all scripts from preferences script directory folder"""
     preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
 
     directory = preferences.script_dir
@@ -146,6 +154,8 @@ def getListOfScripts(self, context):
                 Enum_items.append(item)
         
     return Enum_items
+    
+### Arguments Control
     
 def addArgs(context, template_index, script_index, type, name = "Test Arg", description = "Test Arg Do", value=0):
     template = context.scene.templates_collection[template_index]
@@ -167,7 +177,6 @@ def addArgs(context, template_index, script_index, type, name = "Test Arg", desc
     
     arg[key] = value
     
-    
 def editArgs(context, template_index, script_index, arg_index, type, name = "Test Arg", description = "Test Arg Do", value=0):
     template = context.scene.templates_collection[template_index]
     script = template.scripts[script_index]
@@ -185,4 +194,49 @@ def removeArgs(context, template_index, script_index, arg_index):
     template = context.scene.templates_collection[template_index]
     script = template.scripts[script_index]
     script.args.remove(arg_index)
-    
+
+### Scrirt Execution
+
+def executeScript(props, filepath):
+    # Dynamically import and execute the script
+    spec = importlib.util.spec_from_file_location("module.name", filepath)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    # Init Props value for script
+    args = {}
+    for prop in props:
+        # Basic Properties or Cusom Object Properties
+        key = getVarType(var_types, prop.type)[0]
+        
+        value = prop[key]
+        
+        prop_name = prop.name
+        
+        if "CUSTOM" in prop.type:
+            sub_args = {}
+            
+            if prop.type == "CUSTOM":
+                target_object = bpy.context.scene.objects.get(value)
+            if prop.type == "CUSTOM_SELF":
+                target_object = bpy.context.active_object
+                
+            for prop_item in target_object.keys():
+                ignore_mask = prop_item + ";"
+                if ignore_mask not in prop.name:
+                    if prop_item != "_RNA_UI":
+                        sub_args.update({prop_item: target_object[prop_item]})
+            
+            value = sub_args
+            prop_name = target_object.name
+            
+        
+        args.update({prop_name: value})
+        
+    # Assuming there's a function named 'main' in each script
+    if hasattr(module, "main"):
+        try:                
+            module.main(args)  # Execute the 'main' function
+            return [{'INFO'}, "Scripts executed"]
+        except Exception as e:
+            return [{'ERROR'}, f"Error running main() in {filepath}: {e}"]

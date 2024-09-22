@@ -1,5 +1,9 @@
 import bpy
-from .main import UsesClasses, MainProps, delMainProps
+from .main import MainClasses, MainProps, delMainProps
+
+from .interfaces import InterfaceClasses
+from .operators import OperatorsClasses
+from .Components.TemplatesComponent import TemplateClasses, TemplateProps, delTemplateProps
 
 # Addon Info
 bl_info = {
@@ -7,7 +11,7 @@ bl_info = {
     "author": "https://github.com/maqq1e",
     "description": "Easy way manage your custom scripts",
     "blender": (4, 2, 0),
-    "version": (0, 2, 9),
+    "version": (0, 5, 0),
 }
 
 # Preferences Panel 
@@ -33,22 +37,42 @@ class ManagerPreferences(bpy.types.AddonPreferences):
         layout.prop(self, "script_dir")
 
 
+# Initialization Classes
+
+UsesClasses = []
+
 UsesClasses.append(ManagerPreferences)
+UsesClasses.extend(InterfaceClasses)
+UsesClasses.extend(OperatorsClasses)
+UsesClasses.extend(MainClasses)
+UsesClasses.extend(TemplateClasses)
+
+# Initialization Properties
+
+def Props():
+    
+    MainProps()
+    TemplateProps()
+
+def delProps():
+    
+    delMainProps()
+    delTemplateProps()
 
 # Register Classes 
 def register():
 
     for useClass in UsesClasses:
         bpy.utils.register_class(useClass)
-    
-    MainProps()
+        
+    Props()
 
 
 def unregister():
     for useClass in UsesClasses:
         bpy.utils.unregister_class(useClass)
 
-    delMainProps()
+    delProps()
 
 
 if __name__ == "__main__":
