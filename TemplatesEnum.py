@@ -22,6 +22,8 @@ class Args(bpy.types.PropertyGroup):
         default="",
         subtype='DIR_PATH'
     )
+    custom: bpy.props.StringProperty()
+    custom_self: bpy.props.StringProperty()
 
 class Scripts(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty()
@@ -162,10 +164,16 @@ class AddArgsOperator(bpy.types.Operator):
     description: bpy.props.StringProperty(name="Args Description")
 
     type: bpy.props.EnumProperty(name="Type", items=var_types)
+    
+    value: bpy.props.StringProperty(name="Object Name", default="0")
 
     def execute(self, context):
+        if self.type == "CUSTOM":
+            self.value = bpy.context.scene.activeObject.name
+        if self.type == "CUSTOM_SELF":
+            self.value = ""
         
-        addArgs(context, self.template_index, self.script_index, self.type, self.name, self.description)
+        addArgs(context, self.template_index, self.script_index, self.type, self.name, self.description, self.value)
 
         context.scene.isSave = True
 
@@ -176,9 +184,16 @@ class AddArgsOperator(bpy.types.Operator):
         layout = self.layout
         box = layout.box()
         
-        box.prop(self, "name", text="Name")
+        if "CUSTOM" in self.type:
+            box.prop(self, "name", text="Ignore Properties", placeholder="Prop1;Prop2;Prop3;")
+        else:
+            box.prop(self, "name", text="Name")
         box.prop(self, "description", text="Description")
         box.prop(self, "type", text="Type")
+        
+        if self.type == "CUSTOM":
+            box.prop(context.scene, "activeObject", text="Object")
+            
     
     def invoke(self, context, event):
 
@@ -201,6 +216,10 @@ class EditArgsOperator(bpy.types.Operator):
     value: bpy.props.CollectionProperty(type=Args, options={'HIDDEN'})
     
     def execute(self, context):
+        if self.type == "CUSTOM":
+            self.value[0].custom = bpy.context.scene.activeObject.name
+        if self.type == "CUSTOM_SELF":
+            self.value[0].custom = ""
         
         editArgs(context, self.template_index, self.script_index, self.arg_index, self.type, self.name, self.description, self.value[0])
         
@@ -213,11 +232,17 @@ class EditArgsOperator(bpy.types.Operator):
         layout = self.layout
         box = layout.box()
         
-        box.prop(self, "name", text="Name")
+        if "CUSTOM" in self.type:
+            box.prop(self, "name", text="Ignore Properties", placeholder="Prop1;Prop2;Prop3;")
+        else:
+            box.prop(self, "name", text="Name")
         box.prop(self, "description", text="Description")
         disbox = layout.box()
         disbox.prop(self, "type", text="Type")
         disbox.enabled = False
+        
+        if self.type == "CUSTOM":
+            box.prop(context.scene, "activeObject", text="Object")
     
     def invoke(self, context, event):
 
@@ -261,8 +286,11 @@ def TemplateProps():
     bpy.types.Scene.templates_collection = bpy.props.CollectionProperty(type=TemplateName)
 
     bpy.types.Scene.isSave = bpy.props.BoolProperty(default=False)
+    
+    bpy.types.Scene.activeObject = bpy.props.PointerProperty(type=bpy.types.Object)
 
 def delTemplateProps():
 
     del bpy.types.Scene.Templates
     del bpy.types.Scene.templates_collection
+    del bpy.types.Scene.activeObject

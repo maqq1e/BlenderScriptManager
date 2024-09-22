@@ -91,19 +91,46 @@ class InfoTab(bpy.types.Panel):
                     args_box = box.box()
                     
                     for arg in script.args:
-                        arg_index = script.args.find(arg.name)    
+                        arg_index = script.args.find(arg.name)
+                           
                         args_row = args_box.row()
-                        
+                                                                        
                         varType = getVarType(var_types, arg.type)
                         key = varType[0]
                         index = varType[1]
                         option = var_types_options[index]
                         
-                        args_row.prop(arg, key, text="" if option['hideName'] else arg.name, 
-                                      slider=option['slider'],
-                                      toggle=option['toggle'],
-                                      icon_only=option['icon_only']
-                                      )
+                        ### ---   CUSTOM OBJECT PROPERTIES   --- ###
+                        if "CUSTOM" in arg.type:
+                            
+                            if arg.type == "CUSTOM":
+                                target_object = context.scene.objects.get(arg.custom)
+                            if arg.type == "CUSTOM_SELF":
+                                target_object = context.active_object
+                                if target_object == None:
+                                    continue
+                            
+                            prop_box = args_row.box()
+                            prop_row = prop_box.grid_flow()
+                            
+                            _props_count = 0
+                                                        
+                            for prop in target_object.keys():
+                                ignore_mask = prop + ";"
+                                if ignore_mask not in arg.name:
+                                    if prop != "_RNA_UI":  # Ignore the '_RNA_UI' entry
+                                        prop_row.prop(target_object, f'["{prop}"]', text=prop)
+                                        _props_count = _props_count + 1
+                            
+                            if (_props_count == 0):
+                                prop_row.label(text="You have no any properties.")
+                        ###############################################
+                        else:
+                            args_row.prop(arg, key, text="" if option['hideName'] else arg.name, 
+                                        slider=option['slider'],
+                                        toggle=option['toggle'],
+                                        icon_only=option['icon_only']
+                                        )
                         
                         op = args_row.operator("args.edit_item", text="", icon="GREASEPENCIL")
                         op.template_index = template_index
@@ -248,9 +275,34 @@ class RunScriptsOperator(bpy.types.Operator):
         # Init Props value for script
         args = {}
         for prop in self.props:
+            # Basic Properties or Cusom Object Properties
             key = getVarType(var_types, prop.type)[0]
+            
             value = prop[key]
-            args.update({prop.name: value})
+            
+            prop_name = prop.name
+            
+            if "CUSTOM" in prop.type:
+                sub_args = {}
+                
+                if prop.type == "CUSTOM":
+                    target_object = bpy.context.scene.objects.get(value)
+                if prop.type == "CUSTOM_SELF":
+                    target_object = bpy.context.active_object
+                    
+                for prop_item in target_object.keys():
+                    ignore_mask = prop_item + ";"
+                    if ignore_mask not in prop.name:
+                        if prop_item != "_RNA_UI":
+                            sub_args.update({prop_item: target_object[prop_item]})
+                
+                value = sub_args
+                prop_name = target_object.name
+                
+            
+            args.update({prop_name: value})
+            
+            
         
         # Assuming there's a function named 'main' in each script
         if hasattr(module, "main"):

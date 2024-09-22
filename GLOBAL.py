@@ -827,6 +827,8 @@ var_types = [
     ("INTEGER_SLIDER", "Integer Slider", "integer_slider"),
     ("STRING", "String", "string"),
     ("STRING_PATH", "Directory Path", "string_path"),
+    ("CUSTOM", "Custom Data", "custom"),
+    ("CUSTOM_SELF", "Active Object Custom Data", "custom_self"),
 ]
 
 var_default_value = [
@@ -837,7 +839,9 @@ var_default_value = [
     0,
     0,
     "String",
-    "C:\\"
+    "C:\\",
+    "",
+    ""
 ]
 
 var_types_options = [
@@ -874,6 +878,18 @@ var_types_options = [
     {
         "hideName": True,
         "slider":True,
+        "toggle":False,
+        "icon_only":False,
+    },
+    {
+        "hideName": True,
+        "slider":False,
+        "toggle":False,
+        "icon_only":False,
+    },
+    {
+        "hideName": True,
+        "slider":False,
         "toggle":False,
         "icon_only":False,
     },
