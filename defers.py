@@ -1,5 +1,7 @@
 import bpy, json, os
-from .GLOBAL import var_types,var_default_value
+from .interfaces import var_types, var_default_value
+
+### GLOBALS Variables Control
 
 def getVarType(types, id_type):
     value = ""
@@ -14,6 +16,8 @@ def getVarType(types, id_type):
             break
         index = index + 1
     return [value, index]
+
+### JSON Data Control
 
 def serializeDict(data):
 
@@ -86,6 +90,8 @@ def jsonExport(path, file_name, data):
     with open(file_name, 'w') as outfile:
         outfile.write(payload + '\n')
 
+### Templates Control
+
 def addTemplate(context, new_name = "New Template"):
 
     if new_name == "New Template":
@@ -104,6 +110,8 @@ def removeTemplate(context, index):
             
     if len(context.scene.templates_collection) > 0:
         bpy.context.scene.Templates = bpy.context.scene.templates_collection[0].name
+
+### Scripts Control
 
 def addScript(context, template_index, name = "Test", description = "Test Do", icon = "PREFERENCES", path = "Test.py", status=False):
     template = context.scene.templates_collection[template_index]
@@ -130,7 +138,7 @@ def editScript(context, template_index, script_index, name = "Test", description
     script.path = path
        
 def getListOfScripts(self, context):
-    
+    """Get all scripts from preferences script directory folder"""
     preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
 
     directory = preferences.script_dir
@@ -146,6 +154,8 @@ def getListOfScripts(self, context):
                 Enum_items.append(item)
         
     return Enum_items
+    
+### Arguments Control
     
 def addArgs(context, template_index, script_index, type, name = "Test Arg", description = "Test Arg Do", value=0):
     template = context.scene.templates_collection[template_index]
@@ -166,7 +176,6 @@ def addArgs(context, template_index, script_index, type, name = "Test Arg", desc
         value = var_default_value[index]
     
     arg[key] = value
-    
     
 def editArgs(context, template_index, script_index, arg_index, type, name = "Test Arg", description = "Test Arg Do", value=0):
     template = context.scene.templates_collection[template_index]

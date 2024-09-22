@@ -1,3 +1,12 @@
+import bpy
+
+### Additional Functions
+
+def makeTemplateSave(self, context):
+    context.scene.isSave = True
+
+### Datas Variables
+
 icons = [
 ("NONE", "NONE", "", "NONE", 0),
 ("QUESTION", "QUESTION", "", "QUESTION", 1),
@@ -905,4 +914,49 @@ var_types_options = [
         "toggle":False,
         "icon_only":False,
     },
+]
+
+### Classes
+
+class Args(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty()
+    description: bpy.props.StringProperty()
+    type: bpy.props.StringProperty()
+    bool: bpy.props.BoolProperty(options={'ANIMATABLE'})
+    bool_toggle: bpy.props.BoolProperty(options={'ANIMATABLE'})
+    float: bpy.props.FloatProperty()
+    float_slider: bpy.props.FloatProperty()
+    string: bpy.props.StringProperty(
+        name="Directory",
+        default="",
+        subtype='NONE'
+    )
+    integer: bpy.props.IntProperty()
+    integer_slider: bpy.props.IntProperty()
+    string_path: bpy.props.StringProperty(
+        name="Directory",
+        default="",
+        subtype='DIR_PATH'
+    )
+    custom: bpy.props.StringProperty()
+    custom_self: bpy.props.StringProperty()
+
+class Scripts(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty()
+    description: bpy.props.StringProperty()
+    icon: bpy.props.StringProperty()
+    path: bpy.props.StringProperty()
+    status: bpy.props.BoolProperty()
+    args: bpy.props.CollectionProperty(type=Args)
+
+class TemplateName(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(update=makeTemplateSave)
+    scripts: bpy.props.CollectionProperty(type=Scripts)
+    
+
+
+InterfaceClasses = [
+    Args,
+    Scripts,
+    TemplateName
 ]

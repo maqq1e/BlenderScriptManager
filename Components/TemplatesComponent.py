@@ -1,41 +1,7 @@
 import bpy
-from .defers import addTemplate, removeTemplate, addScript, removeScript, editScript, addArgs, editArgs, removeArgs, getListOfScripts
-from .GLOBAL import icons, var_types
+from ..defers import addTemplate, removeTemplate, addScript, removeScript, editScript, addArgs, editArgs, removeArgs, getListOfScripts
+from ..interfaces import *
 
-class Args(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-    description: bpy.props.StringProperty()
-    type: bpy.props.StringProperty()
-    bool: bpy.props.BoolProperty(options={'ANIMATABLE'})
-    bool_toggle: bpy.props.BoolProperty(options={'ANIMATABLE'})
-    float: bpy.props.FloatProperty()
-    float_slider: bpy.props.FloatProperty()
-    string: bpy.props.StringProperty(
-        name="Directory",
-        default="",
-        subtype='NONE'
-    )
-    integer: bpy.props.IntProperty()
-    integer_slider: bpy.props.IntProperty()
-    string_path: bpy.props.StringProperty(
-        name="Directory",
-        default="",
-        subtype='DIR_PATH'
-    )
-    custom: bpy.props.StringProperty()
-    custom_self: bpy.props.StringProperty()
-
-class Scripts(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-    description: bpy.props.StringProperty()
-    icon: bpy.props.StringProperty()
-    path: bpy.props.StringProperty()
-    status: bpy.props.BoolProperty()
-    args: bpy.props.CollectionProperty(type=Args)
-
-class TemplateName(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-    scripts: bpy.props.CollectionProperty(type=Scripts)
 
 def get_template_items(self, context):
     
@@ -52,7 +18,7 @@ def get_template_items(self, context):
 
 class AddTemplateOperator(bpy.types.Operator):
     bl_idname = "templates.add_item"
-    bl_label = "Add Item"
+    bl_label = "Add Template"
 
     def execute(self, context):
 
@@ -82,7 +48,7 @@ class RemoveTemplateOperator(bpy.types.Operator):
     
 class AddScriptOperator(bpy.types.Operator):
     bl_idname = "scripts.add_item"
-    bl_label = "Add Item"
+    bl_label = "Add Script"
 
     template_index: bpy.props.IntProperty(options={'HIDDEN'})
 
@@ -127,7 +93,7 @@ class RemoveScriptOperator(bpy.types.Operator):
     
 class EditScriptOperator(bpy.types.Operator):
     bl_idname = "scripts.edit_item"
-    bl_label = "Remove Item"
+    bl_label = "Edit Script"
     
     template_index: bpy.props.IntProperty(options={'HIDDEN'})
     script_index: bpy.props.IntProperty(options={'HIDDEN'})
@@ -269,8 +235,6 @@ class RemoveArgsOperator(bpy.types.Operator):
         return context.window_manager.invoke_confirm(self, event)
     
 TemplateClasses = [
-    Scripts,
-    TemplateName,
     AddTemplateOperator,
     RemoveTemplateOperator,
     AddScriptOperator,
