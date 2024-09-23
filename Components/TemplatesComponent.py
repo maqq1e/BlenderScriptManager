@@ -246,7 +246,8 @@ TemplateClasses = [
 ]
 
 def TemplateProps():
-    bpy.types.Scene.Templates = bpy.props.EnumProperty(items=get_template_items)
+    bpy.types.WorkSpace.Templates = bpy.props.EnumProperty(items=get_template_items)
+    
     bpy.types.Scene.templates_collection = bpy.props.CollectionProperty(type=TemplateName)
 
     bpy.types.Scene.isSave = bpy.props.BoolProperty(default=False)
@@ -255,6 +256,6 @@ def TemplateProps():
 
 def delTemplateProps():
 
-    del bpy.types.Scene.Templates
+    del bpy.types.WorkSpace.Templates
     del bpy.types.Scene.templates_collection
     del bpy.types.Scene.activeObject

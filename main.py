@@ -14,7 +14,7 @@ class ExtensionPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         
-        self.template_index = context.scene.templates_collection.find(context.scene.Templates)
+        self.template_index = context.scene.templates_collection.find(context.workspace.Templates)
         
         DRAW_Extensions(context, layout, self.template_index)
 
@@ -52,7 +52,7 @@ class ScriptsPanel(bpy.types.Panel):
 
     def draw(self, context):
         
-        self.template_index = context.scene.templates_collection.find(context.scene.Templates)
+        self.template_index = context.scene.templates_collection.find(context.workspace.Templates)
         
         layout = self.layout
         

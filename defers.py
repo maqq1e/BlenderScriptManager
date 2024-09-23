@@ -126,14 +126,14 @@ def addTemplate(context, new_name = "New Template"):
 
     template.name = new_name
 
-    context.scene.Templates = template.name
+    context.workspace.Templates = template.name
 
 def removeTemplate(context, index):
     if len(context.scene.templates_collection) > 0:
             context.scene.templates_collection.remove(index)
             
     if len(context.scene.templates_collection) > 0:
-        bpy.context.scene.Templates = bpy.context.scene.templates_collection[0].name
+        bpy.context.workspace.Templates = bpy.context.scene.templates_collection[0].name
 
 ### Scripts Control
 
