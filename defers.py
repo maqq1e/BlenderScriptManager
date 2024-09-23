@@ -34,18 +34,19 @@ def serializeDict(data):
                 
                 arg_data = []
                 
-                for arg in script['args']:
-                    
-                    key = getVarType(var_types, arg['type'])[0]
-                    
-                    value = arg[key]      
-                    
-                    arg_data.append({
-                        "name": arg['name'],
-                        "description": arg['description'],
-                        "type": arg['type'],
-                        "value": value
-                    })
+                if script.get("args") != None:
+                    for arg in script['args']:
+                        
+                        key = getVarType(var_types, arg['type'])[0]
+                        
+                        value = arg[key]      
+                        
+                        arg_data.append({
+                            "name": arg['name'],
+                            "description": arg['description'],
+                            "type": arg['type'],
+                            "value": value
+                        })
                 
                 scripts_data.append({
                     "name": script["name"],
