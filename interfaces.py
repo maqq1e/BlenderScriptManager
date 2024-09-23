@@ -949,14 +949,20 @@ class Scripts(bpy.types.PropertyGroup):
     status: bpy.props.BoolProperty()
     args: bpy.props.CollectionProperty(type=Args)
 
+class Extensions(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty()
+
 class TemplateName(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(update=makeTemplateSave)
     scripts: bpy.props.CollectionProperty(type=Scripts)
+    extensions: bpy.props.CollectionProperty(type=Extensions)
+    
     
 
 
 InterfaceClasses = [
     Args,
     Scripts,
-    TemplateName
+    Extensions,
+    TemplateName,    
 ]

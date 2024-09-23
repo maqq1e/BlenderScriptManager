@@ -1,4 +1,4 @@
-import bpy, json, os, importlib
+import bpy, json, os, sys, importlib, inspect
 from .interfaces import var_types, var_default_value
 
 ### GLOBALS Variables Control
@@ -56,9 +56,21 @@ def serializeDict(data):
                     "args": arg_data
                 })
 
+        extensions_data = []
+        
+        if len(el.extensions) > 0:
+            for extensions in el["extensions"]:
+                
+                extensions_data.append({
+                    "name": extensions["name"],
+                })
+            
+
+
         result['templates'].append({
             "name": el["name"],
-            "scripts": scripts_data
+            "scripts": scripts_data,
+            "extensions": extensions_data
         })
 
 
@@ -90,6 +102,18 @@ def jsonExport(path, file_name, data):
     with open(file_name, 'w') as outfile:
         outfile.write(payload + '\n')
 
+### Extensions Control
+
+def addExtension(context, template_index, name):
+    template = context.scene.templates_collection[template_index]
+    extension = template.extensions.add()
+    
+    extension.name = name
+
+def removeExtension(context, template_index, extensions_index):
+    if len(context.scene.templates_collection[template_index].extensions) > 0:
+        context.scene.templates_collection[template_index].extensions.remove(extensions_index)
+    
 ### Templates Control
 
 def addTemplate(context, new_name = "New Template"):
@@ -240,3 +264,48 @@ def executeScript(props, filepath):
             return [{'INFO'}, "Scripts executed"]
         except Exception as e:
             return [{'ERROR'}, f"Error running main() in {filepath}: {e}"]
+        
+def registerClass(filepath, fileName, isUnregister=False):
+    # Full path to the .py file
+    py_file_path = os.path.join(filepath, fileName)
+    # Ensure the path is in Python's system path
+    if filepath not in sys.path:
+        sys.path.append(filepath)
+        
+    # Remove the .py extension from the filename to import the module
+    module_name = os.path.splitext(fileName)[0]
+    
+    # Try to import the module dynamically
+    try:
+        module = importlib.import_module(module_name)
+        importlib.reload(module)  # Reload the module in case it was already loaded
+    except ImportError as e:
+        print(f"Error importing module: {e}")
+        module = None
+        
+    # If the module was successfully imported, inspect it to find all classes
+    classes = []
+    if module:
+        # Iterate through the members of the module and filter out classes
+        for name, obj in inspect.getmembers(module):
+            # Check if the object is a class and a subclass of bpy.types.Operator or bpy.types.Panel
+            if inspect.isclass(obj) and (issubclass(obj, bpy.types.Operator) or issubclass(obj, bpy.types.Panel)):
+                classes.append(obj)
+
+    if isUnregister:
+        for cls in classes:
+            # Check if the class exists in bpy.types (where all Blender classes are registered)
+            _cls = getattr(bpy.types, cls.bl_idname, None)
+            
+            # If the class exists, try to unregister it
+            if _cls:
+                try:
+                    bpy.utils.unregister_class(_cls)
+                except RuntimeError as e:
+                    print(f"Error unregistering class {cls.bl_idname}: {e}")
+            else:
+                print(f"Class {cls.bl_idname} not found in bpy.types")
+    else:
+        for cls in classes:
+            bpy.utils.register_class(cls)
+    

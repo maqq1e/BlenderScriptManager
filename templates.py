@@ -105,7 +105,42 @@ def DRAW_Arguments(context, script, box, template_index, script_index):
         op.template_index = template_index
         op.script_index = script_index
         op.arg_index = arg_index
+   
+def DRAW_Extensions(context, layout, template_index):
+    PREFERENCES = getPREFERENCES()
+    templates_collection = context.scene.templates_collection
+    
+    if len(templates_collection) != 0:
+        if len(templates_collection[template_index].extensions) != 0:
+            ext_index = 0
+            for ext in templates_collection[template_index].extensions:
+                box = layout.box()
+                row = box.row()
+                
+                op = row.operator(RegisterScriptOperator.bl_idname, text="", icon="PLAY")
+                op.script_dir = PREFERENCES.script_dir
+                op.script_name = ext.name
+                op.isUnregister = False
+                
+                pause_op = row.operator(RegisterScriptOperator.bl_idname, text="", icon="PAUSE")
+                pause_op.script_dir = PREFERENCES.script_dir
+                pause_op.script_name = ext.name
+                pause_op.isUnregister = True
+                
+                
+                row.label(text=ext.name)
+                
+                del_op = row.operator("extensions.remove_item", text="", icon="REMOVE")
+                del_op.template_index = template_index
+                del_op.extension_index = ext_index
+                
+                ext_index = ext_index + 1
+        else:
+            layout.label(text="You have no any extensions.")
         
+    add_op = layout.operator("extensions.add_item", text="Add Extension")
+    add_op.template_index = template_index 
+         
 def EXECUTE_Script(panel_row, script):
     PREFERENCES = getPREFERENCES()
     
@@ -121,3 +156,4 @@ def EXECUTE_Script(panel_row, script):
         key = getVarType(var_types, arg.type)[0]
         
         ap[key] = arg[key]
+        

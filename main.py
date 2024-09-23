@@ -1,12 +1,30 @@
 import bpy
 from .templates import *
 
-class TemplatesPanel(bpy.types.Panel):
-    bl_label = "Templates"
-    bl_idname = "OBJECT_PT_templates"
+class ExtensionPanel(bpy.types.Panel):
+    bl_label = "Extensions"
+    bl_idname = "OBJECT_PT_Extensions"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Script Manager"
+    bl_order = 0
+    
+    template_index: bpy.props.IntProperty()
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        self.template_index = context.scene.templates_collection.find(context.scene.Templates)
+        
+        DRAW_Extensions(context, layout, self.template_index)
+
+class TemplatesPanel(bpy.types.Panel):
+    bl_label = "Templates"
+    bl_idname = "OBJECT_PT_Templates"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Script Manager"
+    bl_order = 1
 
     def draw(self, context):
         layout = self.layout
@@ -27,6 +45,7 @@ class ScriptsPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "Script Manager"
+    bl_order = 2
     
     template_index: bpy.props.IntProperty()
     script_index: bpy.props.IntProperty()
@@ -85,9 +104,10 @@ class ScriptsPanel(bpy.types.Panel):
             
         op = layout.label(text="You need template to add any scripts.")
             
-        
+
 
 MainClasses = [
+    ExtensionPanel,
     TemplatesPanel,
     ScriptsPanel
 ]

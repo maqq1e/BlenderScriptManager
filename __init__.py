@@ -4,6 +4,7 @@ from .main import MainClasses, MainProps, delMainProps
 from .interfaces import InterfaceClasses
 from .operators import OperatorsClasses
 from .Components.TemplatesComponent import TemplateClasses, TemplateProps, delTemplateProps
+from .Components.ExtensionsComponent import ExtensionsClasses, ExtensionsProps, delExtensionsProps
 
 # Addon Info
 bl_info = {
@@ -11,7 +12,7 @@ bl_info = {
     "author": "https://github.com/maqq1e",
     "description": "Easy way manage your custom scripts",
     "blender": (4, 2, 0),
-    "version": (0, 5, 0),
+    "version": (0, 6, 5),
 }
 
 # Preferences Panel 
@@ -44,6 +45,7 @@ UsesClasses = []
 UsesClasses.append(ManagerPreferences)
 UsesClasses.extend(InterfaceClasses)
 UsesClasses.extend(OperatorsClasses)
+UsesClasses.extend(ExtensionsClasses)
 UsesClasses.extend(MainClasses)
 UsesClasses.extend(TemplateClasses)
 
@@ -53,11 +55,13 @@ def Props():
     
     MainProps()
     TemplateProps()
+    ExtensionsProps()
 
 def delProps():
     
     delMainProps()
     delTemplateProps()
+    delExtensionsProps()
 
 # Register Classes 
 def register():

@@ -56,6 +56,10 @@ class LoadTemplates(bpy.types.Operator):
                 
                 script_index = script_index + 1 # Increment Index 
             
+            for extension in template['extensions']:
+                addExtension(context, template_index,
+                             extension['name'])
+            
             script_index = 0
             template_index = template_index + 1 # Increment Index 
                     
@@ -96,10 +100,25 @@ class RunScriptsOperator(bpy.types.Operator):
         self.report(status[0], status[1])
         return {'FINISHED'}
 
+class RegisterScriptOperator(bpy.types.Operator):
+    bl_idname = "wm.register_script_operator"
+    bl_label = "Register Script from Directory"
+
+    script_dir: bpy.props.StringProperty(name="Script Dir", default="")
+    script_name: bpy.props.StringProperty(name="Script Name", default="")
+    
+    isUnregister: bpy.props.BoolProperty(default=False)
+    
+    def execute(self, context):
+
+        registerClass(self.script_dir, self.script_name, self.isUnregister)
+        
+        return {'FINISHED'}
     
 OperatorsClasses = [
     OpenAddonPreferencesOperator,
     LoadTemplates,
     SaveTemplates,
-    RunScriptsOperator
+    RunScriptsOperator,
+    RegisterScriptOperator
 ]
