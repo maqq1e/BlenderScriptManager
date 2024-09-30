@@ -1,7 +1,6 @@
 import bpy
-from ..defers import addTemplate, removeTemplate, addScript, removeScript, editScript, addArgs, editArgs, removeArgs, getListOfScripts
+from ..defers import registerTemplateExtensions, addTemplate, removeTemplate, addScript, removeScript, editScript, addArgs, editArgs, removeArgs, getListOfScripts, registerClass, addGlobalExtension
 from ..interfaces import *
-
 
 def get_template_items(self, context):
     
@@ -15,6 +14,9 @@ def get_template_items(self, context):
         Enum_items.append(item)
         
     return Enum_items   
+
+def change_template_extensions(self, context):
+    registerTemplateExtensions(context, self.Templates)
 
 class AddTemplateOperator(bpy.types.Operator):
     bl_idname = "templates.add_item"
@@ -246,7 +248,7 @@ TemplateClasses = [
 ]
 
 def TemplateProps():
-    bpy.types.WorkSpace.Templates = bpy.props.EnumProperty(items=get_template_items)
+    bpy.types.WorkSpace.Templates = bpy.props.EnumProperty(items=get_template_items, update=change_template_extensions)
     
     bpy.types.Scene.templates_collection = bpy.props.CollectionProperty(type=TemplateName)
 

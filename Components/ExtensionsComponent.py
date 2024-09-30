@@ -1,19 +1,17 @@
 import bpy
 
 from ..interfaces import Extensions
-from ..defers import getListOfScripts, addExtension, removeExtension
+from ..defers import getListOfScripts, addGlobalExtension, removeGlobalExtension
 
 class AddExtensionsOperator(bpy.types.Operator):
     bl_idname = "extensions.add_item"
     bl_label = "Add Extension"
-    
-    template_index: bpy.props.IntProperty(options={'HIDDEN'})
 
     name: bpy.props.EnumProperty(name="Scripts", items=getListOfScripts)
 
     def execute(self, context):
 
-        addExtension(context, self.template_index, self.name)
+        addGlobalExtension(context, self.name)
 
         context.scene.isSave = True
 
@@ -32,7 +30,7 @@ class RemoveExtensionsOperator(bpy.types.Operator):
 
     def execute(self, context):
 
-        removeExtension(context, self.template_index, self.extension_index)
+        removeGlobalExtension(context, self.extension_index)
 
         context.scene.isSave = True
 
@@ -41,8 +39,6 @@ class RemoveExtensionsOperator(bpy.types.Operator):
     def invoke(self, context, event):
 
         return context.window_manager.invoke_confirm(self, event)
-
-
 
 
 ExtensionsClasses = [

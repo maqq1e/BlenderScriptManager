@@ -1,5 +1,15 @@
-import bpy
+import bpy, textwrap
 from .templates import *
+from .interfaces import getTemplatesFiles
+
+### Additional panel functions
+
+def _label_multiline(context, text, parent):
+    chars = int(context.region.width / 7)   # 7 pix on 1 character
+    wrapper = textwrap.TextWrapper(width=chars)
+    text_lines = wrapper.wrap(text=text)
+    for text_line in text_lines:
+        parent.label(text=text_line)
 
 class ExtensionPanel(bpy.types.Panel):
     bl_label = "Extensions"
@@ -10,6 +20,21 @@ class ExtensionPanel(bpy.types.Panel):
     bl_order = 0
     
     template_index: bpy.props.IntProperty()
+    
+    @classmethod
+    def poll(cls, context):
+        data = bpy.context.preferences.addons["BlenderScriptManager"].preferences.script_dir
+        if data == "":
+            return False
+        else:
+            if context.scene.BSM_TemplatesFilesList == "":
+                return False
+            else:
+                if len(context.scene.templates_collection) > 0:
+                    return True
+                else:
+                    return False
+        
     
     def draw(self, context):
         layout = self.layout
@@ -32,12 +57,38 @@ class TemplatesPanel(bpy.types.Panel):
         ### --- GET PREFERENCES --- ###
         ###############################
         
-        CHECKOUT_Preferences(layout)
+        PREFERENCES = bpy.context.preferences.addons["BlenderScriptManager"].preferences
+        
+        # Set dir if not exist
+        if PREFERENCES.script_dir == "":
+            layout.label(text="Please set the script directory in preferences.")
+            layout.operator(OpenAddonPreferencesOperator.bl_idname, text="Open Addon Preferences", icon='PREFERENCES')
+            return None
+        
+        if context.scene.BSM_TemplatesFilesList == "":
+            _label_multiline(context, "Your script folder not contain any .json template file. You must create one.", layout)
+            op = layout.operator(CreateJsonFile.bl_idname, text="Create .json file", icon='ADD')
+            op.path = PREFERENCES.script_dir
+            op.name = "templates.json"
+            return None
+                
+        row = layout.row()
+        row.prop(context.scene, "BSM_TemplatesFilesList", text="")
+        
+        add_new = row.operator(CreateJsonFile.bl_idname, text="", icon='ADD')
+        add_new.path = PREFERENCES.script_dir
+        add_new.name = "templates.json"
+        
+        del_new = row.operator(DeleteJsonFile.bl_idname, text="", icon='REMOVE')
+        del_new.path = PREFERENCES.script_dir
+        del_new.name = context.scene.BSM_TemplatesFilesList
         
         ### --- SETUP TEMPLATES --- ###
         ###############################
         
         SETUP_Templates(context, layout)
+        
+        layout.operator(OpenAddonPreferencesOperator.bl_idname, text="Open Addon Preferences", icon='PREFERENCES')
 
 class ScriptsPanel(bpy.types.Panel):
     bl_label = "Scripts"
@@ -49,6 +100,20 @@ class ScriptsPanel(bpy.types.Panel):
     
     template_index: bpy.props.IntProperty()
     script_index: bpy.props.IntProperty()
+    
+    @classmethod
+    def poll(cls, context):
+        data = bpy.context.preferences.addons["BlenderScriptManager"].preferences.script_dir
+        if data == "":
+            return False
+        else:
+            if context.scene.BSM_TemplatesFilesList == "":
+                return False
+            else:
+                if len(context.scene.templates_collection) > 0:
+                    return True
+                else:
+                    return False
 
     def draw(self, context):
         
@@ -103,8 +168,6 @@ class ScriptsPanel(bpy.types.Panel):
             return None
             
         op = layout.label(text="You need template to add any scripts.")
-            
-
 
 MainClasses = [
     ExtensionPanel,
@@ -113,8 +176,11 @@ MainClasses = [
 ]
 
 def MainProps():
-    pass
+    
+    bpy.types.Scene.BSM_TemplatesFilesList = bpy.props.EnumProperty(name="Templates Files", items=getTemplatesFiles)
     
 
 def delMainProps():
-    pass
+    
+    del bpy.types.Scene.BSM_TemplatesFilesList
+    

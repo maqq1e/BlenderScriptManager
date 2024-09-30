@@ -19,13 +19,14 @@ def getVarType(types, id_type):
 
 ### JSON Data Control
 
-def serializeDict(data):
+def serializeDict(templates, ext_data):
 
     result = {
-        "templates": []
+        "templates": [],
+        "extensions": []
     }
 
-    for el in data:
+    for el in templates:
 
         scripts_data = []
 
@@ -74,6 +75,11 @@ def serializeDict(data):
             "extensions": extensions_data
         })
 
+    for el in ext_data:
+        result['extensions'].append({
+            "name": el["name"]
+        })
+
 
     return result
 
@@ -97,24 +103,73 @@ def jsonExport(path, file_name, data):
 
     # set output path and file name (set your own)
     save_path = path
-    file_name = os.path.join(save_path, file_name)
+    file = os.path.join(save_path, file_name)
 
     # write JSON file
-    with open(file_name, 'w') as outfile:
+    with open(file, 'w') as outfile:
         outfile.write(payload + '\n')
 
+def deleteFile(path, file_name):
+    file = os.path.join(path, file_name)
+    
+    os.remove(file)
+
+def checkFileExist(path, file_name):
+    file = os.path.join(path, file_name)
+    
+    return os.path.isfile(file)
+
 ### Extensions Control
+
+def addGlobalExtension(context, name):
+    extension = context.scene.extensions_collection.add()
+    extension.name = name
+
+def removeGlobalExtension(context, extension_index):
+    if len(context.scene.extensions_collection) > 0:
+        context.scene.extensions_collection.remove(extension_index)
 
 def addExtension(context, template_index, name):
     template = context.scene.templates_collection[template_index]
     extension = template.extensions.add()
     
     extension.name = name
-
-def removeExtension(context, template_index, extensions_index):
-    if len(context.scene.templates_collection[template_index].extensions) > 0:
-        context.scene.templates_collection[template_index].extensions.remove(extensions_index)
     
+def removeExtension(context, template_index, extension_index):
+    if len(context.scene.templates_collection[template_index].extensions) > 0:
+        context.scene.templates_collection[template_index].extensions.remove(extension_index)
+    
+def changeExtensionStatus(context, template_name, extensions_name):
+    extension = context.scene.extensions_collection[extensions_name]
+    
+    extension.status = not extension.status
+    
+    template = context.scene.templates_collection[template_name]
+    
+    ext_index = template.extensions.find(extensions_name)
+    
+    if ext_index != -1:
+        if not extension.status:
+            template.extensions.remove(ext_index)
+    else:
+        ext = template.extensions.add()
+        ext.name = extensions_name
+
+def registerTemplateExtensions(context, template_index):
+    preferences = context.preferences.addons["BlenderScriptManager"].preferences
+    
+    extensions_collection = context.scene.extensions_collection
+    
+    for ext in extensions_collection:
+        ext.status = False
+        registerClass(preferences.script_dir, ext.name, True) # Unregister Classes
+    
+    template_extensions = context.scene.templates_collection[template_index].extensions
+    
+    for ext in template_extensions:
+        extensions_collection[ext.name].status = True
+        registerClass(preferences.script_dir, ext.name) # Register Classes
+
 ### Templates Control
 
 def addTemplate(context, new_name = "New Template"):

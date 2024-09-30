@@ -16,6 +16,48 @@ class OpenAddonPreferencesOperator(bpy.types.Operator):
         bpy.ops.preferences.addon_expand(module = "BlenderScriptManager")
         return {'FINISHED'}
 
+class CreateJsonFile(bpy.types.Operator):
+    bl_idname = "wm.create_json_file"
+    bl_label = "Create new .json template file?"
+    
+    path: bpy.props.StringProperty(name="Path", default="")
+    name: bpy.props.StringProperty(name="Name", default="")
+    
+    def execute(self, context):
+        
+        data = {
+            "templates": [],
+            "extensions": []
+        }
+        
+        if not checkFileExist(self.path, self.name):
+            jsonExport(self.path, self.name, data)
+        else:
+            jsonExport(self.path, "1_" + self.name, data)
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+
+        return context.window_manager.invoke_confirm(self, event)
+
+class DeleteJsonFile(bpy.types.Operator):
+    bl_idname = "wm.delete_json_file"
+    bl_label = "Delete current .json template file?"
+    
+    path: bpy.props.StringProperty(name="Path", default="")
+    name: bpy.props.StringProperty(name="Name", default="")
+    
+    def execute(self, context):
+        
+        deleteFile(self.path, self.name)
+        
+        return {'FINISHED'}
+
+    
+    def invoke(self, context, event):
+
+        return context.window_manager.invoke_confirm(self, event)
+
 class LoadTemplates(bpy.types.Operator):
     bl_idname = "wm.load_templates"
     bl_label = "Load Template"
@@ -24,14 +66,14 @@ class LoadTemplates(bpy.types.Operator):
         # Get the file name from the addon preferences
         PREFERENCES = bpy.context.preferences.addons["BlenderScriptManager"].preferences
 
-        layout = self.layout
-
         script_dir = PREFERENCES.script_dir
-        templates_list = PREFERENCES.templates_list
-        templates_list = jsonImport(script_dir, "templates.json")
+        templates_name = context.scene.BSM_TemplatesFilesList
+        templates_list = jsonImport(script_dir, templates_name)
+        extensions_list = templates_list['extensions']
         templates_list = templates_list['templates']
         
         context.scene.templates_collection.clear()
+        context.scene.extensions_collection.clear()
         
         # Get List Item Index
         template_index = 0
@@ -62,8 +104,10 @@ class LoadTemplates(bpy.types.Operator):
             
             script_index = 0
             template_index = template_index + 1 # Increment Index 
-                    
-                
+        # print(extensions_list[0])
+        for ext in extensions_list:
+            addGlobalExtension(context, ext['name'])
+        
         context.scene.isSave = False
         
 
@@ -76,8 +120,11 @@ class SaveTemplates(bpy.types.Operator):
     def execute(self, context):
         # Get the file name from the addon preferences
         preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
+        
+        templates = context.scene.templates_collection
+        extensions = context.scene.extensions_collection
 
-        jsonExport(preferences.script_dir, 'templates.json', serializeDict(context.scene.templates_collection))
+        jsonExport(preferences.script_dir, 'templates.json', serializeDict(templates, extensions))
 
         context.scene.isSave = False
 
@@ -107,11 +154,16 @@ class RegisterScriptOperator(bpy.types.Operator):
     script_dir: bpy.props.StringProperty(name="Script Dir", default="")
     script_name: bpy.props.StringProperty(name="Script Name", default="")
     
+    template_name: bpy.props.StringProperty()
+    
     isUnregister: bpy.props.BoolProperty(default=False)
     
     def execute(self, context):
 
         registerClass(self.script_dir, self.script_name, self.isUnregister)
+        changeExtensionStatus(context, self.template_name, self.script_name)
+        
+        context.scene.isSave = True
         
         return {'FINISHED'}
     
@@ -120,5 +172,7 @@ OperatorsClasses = [
     LoadTemplates,
     SaveTemplates,
     RunScriptsOperator,
-    RegisterScriptOperator
+    RegisterScriptOperator,
+    CreateJsonFile,
+    DeleteJsonFile
 ]

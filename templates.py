@@ -1,21 +1,11 @@
 import bpy
 from .operators import *
-from .interfaces import *
+from .interfaces import var_types_options
 
 def getPREFERENCES():
     data = bpy.context.preferences.addons["BlenderScriptManager"].preferences
     return data
-    
-def CHECKOUT_Preferences(layout):
-    
-    PREFERENCES = getPREFERENCES()
-    
-    # Set dir if not exist
-    if PREFERENCES.script_dir == "":
-        layout.label(text="Please set the script directory in preferences.")
-        layout.operator(OpenAddonPreferencesOperator.bl_idname, text="Open Addon Preferences", icon='PREFERENCES')
-        return None
-        
+ 
 def SETUP_Templates(context, layout):
     row = layout.row()
     # If Templates changed
@@ -108,38 +98,41 @@ def DRAW_Arguments(context, script, box, template_index, script_index):
    
 def DRAW_Extensions(context, layout, template_index):
     PREFERENCES = getPREFERENCES()
-    templates_collection = context.scene.templates_collection
     
-    if len(templates_collection) != 0:
-        if len(templates_collection[template_index].extensions) != 0:
-            ext_index = 0
-            for ext in templates_collection[template_index].extensions:
-                box = layout.box()
-                row = box.row()
-                
+    current_template = context.workspace.Templates
+    extensions_collection = context.scene.extensions_collection
+    
+    if len(extensions_collection) != 0:
+        ext_index = 0
+        for ext in extensions_collection:
+            box = layout.box()
+            row = box.row()
+
+            if ext.status:
+                pause_op = row.operator(RegisterScriptOperator.bl_idname, text="", icon="PAUSE", depress=True)
+                pause_op.script_dir = PREFERENCES.script_dir
+                pause_op.script_name = ext.name
+                pause_op.template_name = current_template
+                pause_op.isUnregister = True
+            else:
                 op = row.operator(RegisterScriptOperator.bl_idname, text="", icon="PLAY")
                 op.script_dir = PREFERENCES.script_dir
                 op.script_name = ext.name
+                op.template_name = current_template
                 op.isUnregister = False
-                
-                pause_op = row.operator(RegisterScriptOperator.bl_idname, text="", icon="PAUSE")
-                pause_op.script_dir = PREFERENCES.script_dir
-                pause_op.script_name = ext.name
-                pause_op.isUnregister = True
-                
-                
-                row.label(text=ext.name)
-                
-                del_op = row.operator("extensions.remove_item", text="", icon="REMOVE")
-                del_op.template_index = template_index
-                del_op.extension_index = ext_index
-                
-                ext_index = ext_index + 1
-        else:
-            layout.label(text="You have no any extensions.")
+            
+            row.label(text=ext.name)
+            
+            del_op = row.operator("extensions.remove_item", text="", icon="REMOVE")
+            del_op.template_index = template_index
+            del_op.extension_index = ext_index
+            
+            ext_index = ext_index + 1
+    else:
+        layout.label(text="You have no any extensions.")
         
     add_op = layout.operator("extensions.add_item", text="Add Extension")
-    add_op.template_index = template_index 
+    # add_op.template_index = template_index 
          
 def EXECUTE_Script(panel_row, script):
     PREFERENCES = getPREFERENCES()
