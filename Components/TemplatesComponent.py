@@ -6,7 +6,7 @@ def get_template_items(self, context):
     
     Enum_items = []
     
-    for template_item in context.scene.templates_collection:
+    for template_item in context.scene.BSM_Templates_collection:
         
         data = str(template_item.name)
         item = (data, data, data)
@@ -16,7 +16,7 @@ def get_template_items(self, context):
     return Enum_items   
 
 def change_template_extensions(self, context):
-    registerTemplateExtensions(context, self.Templates)
+    registerTemplateExtensions(context, self.BSM_Templates)
 
 class AddTemplateOperator(bpy.types.Operator):
     bl_idname = "templates.add_item"
@@ -26,7 +26,7 @@ class AddTemplateOperator(bpy.types.Operator):
 
         addTemplate(context)
 
-        context.scene.isSave = True
+        context.scene.BSM_isSave = True
 
         return {'FINISHED'}
     
@@ -40,7 +40,7 @@ class RemoveTemplateOperator(bpy.types.Operator):
         
         removeTemplate(context, self.index)
 
-        context.scene.isSave = True
+        context.scene.BSM_isSave = True
 
         return {'FINISHED'}
     
@@ -66,7 +66,7 @@ class AddScriptOperator(bpy.types.Operator):
         
         addScript(context, self.template_index, self.name, self.description, self.icon, self.path)
 
-        context.scene.isSave = True
+        context.scene.BSM_isSave = True
 
         return {'FINISHED'}
     
@@ -85,7 +85,7 @@ class RemoveScriptOperator(bpy.types.Operator):
         
         removeScript(context, self.template_index, self.script_index)
         
-        context.scene.isSave = True
+        context.scene.BSM_isSave = True
 
         return {'FINISHED'}
     
@@ -112,7 +112,7 @@ class EditScriptOperator(bpy.types.Operator):
         
         editScript(context, self.template_index, self.script_index, self.name, self.description, self.icon, self.path)
         
-        context.scene.isSave = True
+        context.scene.BSM_isSave = True
 
         return {'FINISHED'}
     
@@ -137,13 +137,13 @@ class AddArgsOperator(bpy.types.Operator):
 
     def execute(self, context):
         if self.type == "CUSTOM":
-            self.value = bpy.context.scene.activeObject.name
+            self.value = bpy.context.scene.BSM_activeObject.name
         if self.type == "CUSTOM_SELF":
             self.value = ""
         
         addArgs(context, self.template_index, self.script_index, self.type, self.name, self.description, self.value)
 
-        context.scene.isSave = True
+        context.scene.BSM_isSave = True
 
         return {'FINISHED'}
     
@@ -160,7 +160,7 @@ class AddArgsOperator(bpy.types.Operator):
         box.prop(self, "type", text="Type")
         
         if self.type == "CUSTOM":
-            box.prop(context.scene, "activeObject", text="Object")
+            box.prop(context.scene, "BSM_activeObject", text="Object")
             
     
     def invoke(self, context, event):
@@ -185,13 +185,13 @@ class EditArgsOperator(bpy.types.Operator):
     
     def execute(self, context):
         if self.type == "CUSTOM":
-            self.value[0].custom = bpy.context.scene.activeObject.name
+            self.value[0].custom = bpy.context.scene.BSM_activeObject.name
         if self.type == "CUSTOM_SELF":
             self.value[0].custom = ""
         
         editArgs(context, self.template_index, self.script_index, self.arg_index, self.type, self.name, self.description, self.value[0])
         
-        context.scene.isSave = True
+        context.scene.BSM_isSave = True
 
         return {'FINISHED'}
     
@@ -210,7 +210,7 @@ class EditArgsOperator(bpy.types.Operator):
         disbox.enabled = False
         
         if self.type == "CUSTOM":
-            box.prop(context.scene, "activeObject", text="Object")
+            box.prop(context.scene, "BSM_activeObject", text="Object")
     
     def invoke(self, context, event):
 
@@ -228,7 +228,7 @@ class RemoveArgsOperator(bpy.types.Operator):
         
         removeArgs(context, self.template_index, self.script_index, self.arg_index)
         
-        context.scene.isSave = True
+        context.scene.BSM_isSave = True
 
         return {'FINISHED'}
     
@@ -248,16 +248,20 @@ TemplateClasses = [
 ]
 
 def TemplateProps():
-    bpy.types.WorkSpace.Templates = bpy.props.EnumProperty(items=get_template_items, update=change_template_extensions)
+    bpy.types.WorkSpace.BSM_Templates = bpy.props.EnumProperty(items=get_template_items, update=change_template_extensions)
     
-    bpy.types.Scene.templates_collection = bpy.props.CollectionProperty(type=TemplateName)
+    bpy.types.Scene.BSM_Templates_collection = bpy.props.CollectionProperty(type=TemplateName)
 
-    bpy.types.Scene.isSave = bpy.props.BoolProperty(default=False)
+    bpy.types.Scene.BSM_isSave = bpy.props.BoolProperty(default=False)
     
-    bpy.types.Scene.activeObject = bpy.props.PointerProperty(type=bpy.types.Object)
+    bpy.types.Scene.BSM_activeObject = bpy.props.PointerProperty(type=bpy.types.Object)
 
 def delTemplateProps():
 
-    del bpy.types.WorkSpace.Templates
-    del bpy.types.Scene.templates_collection
-    del bpy.types.Scene.activeObject
+    del bpy.types.WorkSpace.BSM_Templates
+    del bpy.types.Scene.BSM_Templates_collection
+    del bpy.types.Scene.BSM_isSave
+    del bpy.types.Scene.BSM_activeObject
+    
+def clearTemplateProps():
+    pass

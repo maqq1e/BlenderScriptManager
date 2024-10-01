@@ -11,45 +11,15 @@ def _label_multiline(context, text, parent):
     for text_line in text_lines:
         parent.label(text=text_line)
 
-class ExtensionPanel(bpy.types.Panel):
-    bl_label = "Extensions"
-    bl_idname = "OBJECT_PT_Extensions"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+class BlenderScriptManager:
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_category = "Script Manager"
-    bl_order = 0
-    
-    template_index: bpy.props.IntProperty()
-    
-    @classmethod
-    def poll(cls, context):
-        data = bpy.context.preferences.addons["BlenderScriptManager"].preferences.script_dir
-        if data == "":
-            return False
-        else:
-            if context.scene.BSM_TemplatesFilesList == "":
-                return False
-            else:
-                if len(context.scene.templates_collection) > 0:
-                    return True
-                else:
-                    return False
-        
-    
-    def draw(self, context):
-        layout = self.layout
-        
-        self.template_index = context.scene.templates_collection.find(context.workspace.Templates)
-        
-        DRAW_Extensions(context, layout, self.template_index)
 
-class TemplatesPanel(bpy.types.Panel):
+class TemplatesPanel(BlenderScriptManager, bpy.types.Panel):
     bl_label = "Templates"
     bl_idname = "OBJECT_PT_Templates"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "Script Manager"
-    bl_order = 1
+    bl_order = 0
 
     def draw(self, context):
         layout = self.layout
@@ -71,9 +41,42 @@ class TemplatesPanel(bpy.types.Panel):
             op.path = PREFERENCES.script_dir
             op.name = "templates.json"
             return None
-                
-        row = layout.row()
+        
+        ### --- SETUP TEMPLATES --- ###
+        ###############################
+        
+        SETUP_Templates(context, layout)
+
+class Settings(BlenderScriptManager, bpy.types.Panel):
+    bl_parent_id = "OBJECT_PT_Templates"
+    bl_label = "Settings"
+    
+    @classmethod
+    def poll(cls, context):
+        data = bpy.context.preferences.addons["BlenderScriptManager"].preferences.script_dir
+        if data == "":
+            return False
+        else:
+            if context.scene.BSM_TemplatesFilesList == "":
+                return False
+            else:
+                return True
+
+    def draw(self, context):
+        
+        PREFERENCES = bpy.context.preferences.addons["BlenderScriptManager"].preferences
+        
+        layout = self.layout
+        
+        box = layout.box()
+        
+        row = box.row()
         row.prop(context.scene, "BSM_TemplatesFilesList", text="")
+        
+        edit = row.operator("template.edit_file", text="", icon='TOOL_SETTINGS')
+        edit.path = PREFERENCES.script_dir
+        file_name = context.scene.BSM_TemplatesFilesList
+        edit.template_file_name = file_name[0:file_name.find(".json")]
         
         add_new = row.operator(CreateJsonFile.bl_idname, text="", icon='ADD')
         add_new.path = PREFERENCES.script_dir
@@ -83,20 +86,15 @@ class TemplatesPanel(bpy.types.Panel):
         del_new.path = PREFERENCES.script_dir
         del_new.name = context.scene.BSM_TemplatesFilesList
         
-        ### --- SETUP TEMPLATES --- ###
-        ###############################
-        
-        SETUP_Templates(context, layout)
+        if len(context.scene.BSM_Templates_collection) == 0:
+            box.operator(LoadTemplates.bl_idname, text="Load Templates", icon="IMPORT")
         
         layout.operator(OpenAddonPreferencesOperator.bl_idname, text="Open Addon Preferences", icon='PREFERENCES')
 
-class ScriptsPanel(bpy.types.Panel):
+class ScriptsPanel(BlenderScriptManager, bpy.types.Panel):
     bl_label = "Scripts"
     bl_idname = "OBJECT_PT_Scripts"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "Script Manager"
-    bl_order = 2
+    bl_order = 1
     
     template_index: bpy.props.IntProperty()
     script_index: bpy.props.IntProperty()
@@ -110,20 +108,20 @@ class ScriptsPanel(bpy.types.Panel):
             if context.scene.BSM_TemplatesFilesList == "":
                 return False
             else:
-                if len(context.scene.templates_collection) > 0:
+                if len(context.scene.BSM_Templates_collection) > 0:
                     return True
                 else:
                     return False
 
     def draw(self, context):
         
-        self.template_index = context.scene.templates_collection.find(context.workspace.Templates)
+        self.template_index = context.scene.BSM_Templates_collection.find(context.workspace.BSM_Templates)
         
         layout = self.layout
         
-        if len(context.scene.templates_collection) != 0:
-            if len(context.scene.templates_collection[self.template_index].scripts) != 0:
-                for script in context.scene.templates_collection[self.template_index].scripts:
+        if len(context.scene.BSM_Templates_collection) != 0:
+            if len(context.scene.BSM_Templates_collection[self.template_index].scripts) != 0:
+                for script in context.scene.BSM_Templates_collection[self.template_index].scripts:
                     
                     box = layout.box()
                     
@@ -135,7 +133,7 @@ class ScriptsPanel(bpy.types.Panel):
                     
                     ########################
                     
-                    self.script_index = context.scene.templates_collection[self.template_index].scripts.find(script.name)
+                    self.script_index = context.scene.BSM_Templates_collection[self.template_index].scripts.find(script.name)
                     
                     if script.status: 
                         
@@ -169,18 +167,50 @@ class ScriptsPanel(bpy.types.Panel):
             
         op = layout.label(text="You need template to add any scripts.")
 
+class ExtensionPanel(BlenderScriptManager, bpy.types.Panel):
+    bl_label = "Extensions"
+    bl_idname = "OBJECT_PT_Extensions"
+    bl_order = 2
+    
+    template_index: bpy.props.IntProperty()
+    
+    @classmethod
+    def poll(cls, context):
+        data = bpy.context.preferences.addons["BlenderScriptManager"].preferences.script_dir
+        if data == "":
+            return False
+        else:
+            if context.scene.BSM_TemplatesFilesList == "":
+                return False
+            else:
+                if len(context.scene.BSM_Templates_collection) > 0:
+                    return True
+                else:
+                    return False
+        
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        self.template_index = context.scene.BSM_Templates_collection.find(context.workspace.BSM_Templates)
+        
+        DRAW_Extensions(context, layout, self.template_index)
+
 MainClasses = [
-    ExtensionPanel,
     TemplatesPanel,
-    ScriptsPanel
+    Settings,
+    ScriptsPanel,
+    ExtensionPanel,
 ]
 
 def MainProps():
     
-    bpy.types.Scene.BSM_TemplatesFilesList = bpy.props.EnumProperty(name="Templates Files", items=getTemplatesFiles)
+    bpy.types.Scene.BSM_TemplatesFilesList = bpy.props.EnumProperty(name="Templates Files", items=getTemplatesFiles, update=clearProperties)
     
 
 def delMainProps():
     
     del bpy.types.Scene.BSM_TemplatesFilesList
     
+def clearMainProps():
+    pass

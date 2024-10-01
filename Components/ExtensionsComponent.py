@@ -13,7 +13,7 @@ class AddExtensionsOperator(bpy.types.Operator):
 
         addGlobalExtension(context, self.name)
 
-        context.scene.isSave = True
+        context.scene.BSM_isSave = True
 
         return {'FINISHED'}
     
@@ -32,7 +32,7 @@ class RemoveExtensionsOperator(bpy.types.Operator):
 
         removeGlobalExtension(context, self.extension_index)
 
-        context.scene.isSave = True
+        context.scene.BSM_isSave = True
 
         return {'FINISHED'}
     
@@ -47,8 +47,10 @@ ExtensionsClasses = [
 ]
 
 def ExtensionsProps():
-    bpy.types.Scene.extensions_collection = bpy.props.CollectionProperty(type=Extensions)
+    bpy.types.Scene.BSM_Extensions_collection = bpy.props.CollectionProperty(type=Extensions)
 
-def delExtensionsProps():
-
-    del bpy.types.Scene.extensions_collection
+def delExtensionsProps():    
+    del bpy.types.Scene.BSM_Extensions_collection
+    
+def clearExtensionsProps():
+    bpy.context.scene.BSM_Extensions_collection.clear()

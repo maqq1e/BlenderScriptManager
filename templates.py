@@ -9,7 +9,7 @@ def getPREFERENCES():
 def SETUP_Templates(context, layout):
     row = layout.row()
     # If Templates changed
-    if context.scene.isSave:
+    if context.scene.BSM_isSave:
         row.enabled = True
     else:
         row.enabled = False
@@ -17,22 +17,22 @@ def SETUP_Templates(context, layout):
     row.operator(SaveTemplates.bl_idname, text="Save Templates", icon="EXPORT")
     
     row = layout.row(align=True)
-    row.prop(context.workspace, "Templates", text="")
+    row.prop(context.workspace, "BSM_Templates", text="")
     row.operator("templates.add_item", text="", icon="ADD")
     _row = row.row()
     op = _row.operator("templates.remove_item", text="", icon="REMOVE")
-    if len(context.scene.templates_collection) == 0:
+    
+    if len(context.scene.BSM_Templates_collection) == 0:
         _row.enabled = False
 
-    if len(context.scene.templates_collection) == 0:
+    if len(context.scene.BSM_Templates_collection) == 0:
         layout.label(text="You need to create your first template")
-        layout.operator(LoadTemplates.bl_idname, text="Load Templates", icon="IMPORT")
         return None
     
-    template_index = context.scene.templates_collection.find(context.workspace.Templates) # Get Current Template Index
+    template_index = context.scene.BSM_Templates_collection.find(context.workspace.BSM_Templates) # Get Current Template Index
     op.index = template_index
 
-    layout.prop(context.scene.templates_collection[context.workspace.Templates], "name", text="Template Name: ")
+    layout.prop(context.scene.BSM_Templates_collection[context.workspace.BSM_Templates], "name", text="Template Name: ")
 
 def DRAW_Arguments(context, script, box, template_index, script_index):
     
@@ -99,8 +99,8 @@ def DRAW_Arguments(context, script, box, template_index, script_index):
 def DRAW_Extensions(context, layout, template_index):
     PREFERENCES = getPREFERENCES()
     
-    current_template = context.workspace.Templates
-    extensions_collection = context.scene.extensions_collection
+    current_template = context.workspace.BSM_Templates
+    extensions_collection = context.scene.BSM_Extensions_collection
     
     if len(extensions_collection) != 0:
         ext_index = 0

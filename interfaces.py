@@ -3,7 +3,7 @@ import bpy, os
 ### Additional Functions
 
 def makeTemplateSave(self, context):
-    context.scene.isSave = True
+    context.scene.BSM_isSave = True
 
 def getTemplatesFiles(self, context):
     directory = context.preferences.addons["BlenderScriptManager"].preferences.script_dir
