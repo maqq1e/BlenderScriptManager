@@ -6,18 +6,13 @@ def makeTemplateSave(self, context):
     context.scene.BSM_isSave = True
 
 def getTemplatesFiles(self, context):
-    directory = context.preferences.addons["BlenderScriptManager"].preferences.script_dir
     
     Enum_items = []
-    if directory != "":
-        for filename in os.listdir(directory):
-            # Check if the file ends with .py (Python files)
-                if filename.endswith(".json"):
-                    data = filename
-                    item = (data, data, data)
-                    # Print the file name
-                    Enum_items.append(item)
-            
+    for templateFile in context.scene.BSM_TemplatesFilesList_collection:
+        data = str(templateFile.name)
+        item = (data, data, data)
+        Enum_items.append(item)
+        
     return Enum_items
 
 ### Datas Variables
@@ -972,11 +967,14 @@ class TemplateName(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(update=makeTemplateSave)
     scripts: bpy.props.CollectionProperty(type=Scripts)
     extensions: bpy.props.CollectionProperty(type=Extensions)
-    
+
+class Files(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty()
 
 InterfaceClasses = [
     Args,
     Scripts,
     Extensions,
     TemplateName,    
+    Files,
 ]

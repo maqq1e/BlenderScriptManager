@@ -207,6 +207,7 @@ def MainProps():
     
     bpy.types.Scene.BSM_TemplatesFilesList = bpy.props.EnumProperty(name="Templates Files", items=getTemplatesFiles, update=clearProperties)
     
+    bpy.types.Scene.BSM_TemplatesFilesList_collection = bpy.props.CollectionProperty(type=Files)
 
 def delMainProps():
     

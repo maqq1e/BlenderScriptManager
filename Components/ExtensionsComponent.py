@@ -40,7 +40,6 @@ class RemoveExtensionsOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_confirm(self, event)
 
-
 ExtensionsClasses = [
     AddExtensionsOperator,
     RemoveExtensionsOperator

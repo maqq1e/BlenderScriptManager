@@ -22,6 +22,20 @@ def loadDatas(self, context):
     PREFERENCES = bpy.context.preferences.addons["BlenderScriptManager"].preferences
 
     script_dir = PREFERENCES.script_dir
+    
+    context.scene.BSM_TemplatesFilesList_collection.clear()
+    
+    for filename in os.listdir(PREFERENCES.script_dir):
+        # Check if the file ends with .json (Python files)
+        if filename.endswith(".json"):
+            addTemplatesFiles(context, filename)
+    
+    if len(context.scene.BSM_TemplatesFilesList_collection) > 0:
+        if context.scene.BSM_TemplatesFilesList == "":
+            context.scene.BSM_TemplatesFilesList = context.scene.BSM_TemplatesFilesList_collection[0]
+    else:
+        return None
+    
     templates_name = context.scene.BSM_TemplatesFilesList
     templates_list = jsonImport(script_dir, templates_name)
     extensions_list = templates_list['extensions']
@@ -63,8 +77,8 @@ def loadDatas(self, context):
     for ext in extensions_list:
         addGlobalExtension(context, ext['name'])
     
-    if len(templates_list) > 0:
-       context.workspace.BSM_Templates = context.workspace.BSM_Templates
+    # if len(templates_list) > 0:
+    #    context.workspace.BSM_Templates = context.workspace.BSM_Templates
     
     context.scene.BSM_isSave = False
 
@@ -153,7 +167,7 @@ def jsonImport(path, file_name):
 
     return variable
 
-def jsonExport(path, file_name, data):
+def jsonExport(path, file_name, data, isNew = False):
     # encode dict as JSON 
     payload = json.dumps(data, indent=1, ensure_ascii=True)
 
@@ -164,9 +178,14 @@ def jsonExport(path, file_name, data):
     # write JSON file
     with open(file, 'w') as outfile:
         outfile.write(payload + '\n')
+        
+    if isNew:
+        addTemplatesFiles(bpy.context, file_name)
 
 def deleteFile(path, file_name):
     file = os.path.join(path, file_name)
+    
+    removeTemplatesFiles(bpy.context, file_name)
     
     os.remove(file)
 
@@ -238,7 +257,6 @@ def unregisterExtensions(context, script_dir):
         ext.status = False
         registerClass(script_dir, ext.name, True) # Unregister Classes
     
-
 ### Templates Control
 
 def addTemplate(context, new_name = "New Template"):
@@ -259,6 +277,17 @@ def removeTemplate(context, index):
             
     if len(context.scene.BSM_Templates_collection) > 0:
         bpy.context.workspace.BSM_Templates = bpy.context.scene.BSM_Templates_collection[0].name
+
+def addTemplatesFiles(context, new_name):
+        
+    templateFile = context.scene.BSM_TemplatesFilesList_collection.add()
+
+    templateFile.name = new_name
+
+def removeTemplatesFiles(context, name):
+    if len(context.scene.BSM_TemplatesFilesList_collection) > 0:
+        index = context.scene.BSM_TemplatesFilesList_collection.find(name)
+        context.scene.BSM_TemplatesFilesList_collection.remove(index)
 
 ### Scripts Control
 

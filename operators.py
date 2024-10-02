@@ -31,9 +31,11 @@ class CreateJsonFile(bpy.types.Operator):
         }
         
         if not checkFileExist(self.path, self.name):
-            jsonExport(self.path, self.name, data)
+            jsonExport(self.path, self.name, data, True)
         else:
-            jsonExport(self.path, "1_" + self.name, data)
+            jsonExport(self.path, "1_" + self.name, data, True)
+            
+    
         return {'FINISHED'}
     
     def invoke(self, context, event):
