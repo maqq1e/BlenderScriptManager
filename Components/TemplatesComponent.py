@@ -1,5 +1,5 @@
 import bpy
-from ..defers import registerTemplateExtensions, addTemplate, removeTemplate, addScript, removeScript, editScript, addArgs, editArgs, removeArgs, getListOfScripts, registerClass, addGlobalExtension
+from ..defers import editTemplate, registerTemplateExtensions, addTemplate, removeTemplate, addScript, removeScript, editScript, addArgs, editArgs, removeArgs, getListOfScripts, registerClass, addGlobalExtension
 from ..interfaces import *
 
 def get_template_items(self, context):
@@ -29,7 +29,7 @@ class AddTemplateOperator(bpy.types.Operator):
         context.scene.BSM_isSave = True
 
         return {'FINISHED'}
-    
+   
 class RemoveTemplateOperator(bpy.types.Operator):
     bl_idname = "templates.remove_item"
     bl_label = "Remove Template?"
@@ -47,7 +47,40 @@ class RemoveTemplateOperator(bpy.types.Operator):
     def invoke(self, context, event):
 
         return context.window_manager.invoke_confirm(self, event)
+
+class EditTemplateOperator(bpy.types.Operator):
+    bl_idname = "templates.edit_item"
+    bl_label = "Edit Template"
     
+    template_index: bpy.props.IntProperty(options={'HIDDEN'})
+
+    old_name: bpy.props.StringProperty(name="Old Name")
+    
+    name: bpy.props.StringProperty(name="New Name")
+    
+    def execute(self, context):
+        
+        editTemplate(context, self.template_index, self.name)
+        
+        context.scene.BSM_isSave = True
+
+        return {'FINISHED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        disbox = layout.box()
+        disbox.prop(self, "old_name", text="Old Name")
+        disbox.enabled = False
+        
+        box = layout.box()        
+        box.prop(self, "name", text="New name")   
+        
+    
+    def invoke(self, context, event):
+
+        return context.window_manager.invoke_props_dialog(self)
+ 
 class AddScriptOperator(bpy.types.Operator):
     bl_idname = "scripts.add_item"
     bl_label = "Add Script"
@@ -239,6 +272,7 @@ class RemoveArgsOperator(bpy.types.Operator):
 TemplateClasses = [
     AddTemplateOperator,
     RemoveTemplateOperator,
+    EditTemplateOperator,
     AddScriptOperator,
     RemoveScriptOperator,
     EditScriptOperator,

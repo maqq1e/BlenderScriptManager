@@ -18,6 +18,10 @@ def SETUP_Templates(context, layout):
     
     row = layout.row(align=True)
     row.prop(context.workspace, "BSM_Templates", text="")
+    
+    op = row.operator("templates.edit_item", text="", icon="TOOL_SETTINGS")
+    op.old_name = context.workspace.BSM_Templates
+    
     row.operator("templates.add_item", text="", icon="ADD")
     _row = row.row()
     op = _row.operator("templates.remove_item", text="", icon="REMOVE")
@@ -31,8 +35,6 @@ def SETUP_Templates(context, layout):
     
     template_index = context.scene.BSM_Templates_collection.find(context.workspace.BSM_Templates) # Get Current Template Index
     op.index = template_index
-
-    layout.prop(context.scene.BSM_Templates_collection[context.workspace.BSM_Templates], "name", text="Template Name: ")
 
 def DRAW_Arguments(context, script, box, template_index, script_index):
     

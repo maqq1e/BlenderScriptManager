@@ -278,6 +278,10 @@ def removeTemplate(context, index):
     if len(context.scene.BSM_Templates_collection) > 0:
         bpy.context.workspace.BSM_Templates = bpy.context.scene.BSM_Templates_collection[0].name
 
+def editTemplate(context, template_index, name):
+    template = context.scene.BSM_Templates_collection[template_index]
+    template.name = name
+
 def addTemplatesFiles(context, new_name):
         
     templateFile = context.scene.BSM_TemplatesFilesList_collection.add()
