@@ -1,25 +1,27 @@
 import bpy
-from .main import MainClasses, MainProps, delMainProps, clearMainProps
 
-from .defers import clearProperties
+from .App.Interfaces import INTERFACES_Classes
+from .App.Operators import OPERATORS_Classes
 
-from .interfaces import InterfaceClasses
-from .operators import OperatorsClasses
-from .Components.TemplatesComponent import TemplateClasses, TemplateProps, delTemplateProps, clearTemplateProps
-from .Components.ExtensionsComponent import ExtensionsClasses, ExtensionsProps, delExtensionsProps, clearExtensionsProps
+from .Components.ExtensionsComponent import EXTENSIONS_Classes, EXTENSIONS_Props, EXTENSIONS_delProps
+from .Components.TemplatesComponent import TEMPLATES_Classes, TEMPLATES_Props, TEMPLATES_delProps
+from .main import MAIN_Classes, MAIN_Props, MAIN_delProps
 
+from .Defers.Control import EXT_clearProperties
+
+# Set information about addon
 # Addon Info
 bl_info = {
     "name": "Custom Script Manager",
     "author": "https://github.com/maqq1e",
     "description": "Easy way manage your custom scripts",
     "blender": (4, 2, 0),
-    "version": (0, 9, 6),
+    "version": (0, 9, 8),
 }
 
 # Preferences Panel
 
-class ManagerPreferences(bpy.types.AddonPreferences):
+class SETTING_ManagerPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
     
     script_dir: bpy.props.StringProperty(
@@ -27,43 +29,42 @@ class ManagerPreferences(bpy.types.AddonPreferences):
         description="Select the directory containing the Python scripts",
         default="",
         subtype='DIR_PATH',
-        update=clearProperties
+        update=EXT_clearProperties
     ) # type: ignore
     
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "script_dir")
 
-
 # Initialization Classes
-
 UsesClasses = []
 
-UsesClasses.append(ManagerPreferences)
-UsesClasses.extend(InterfaceClasses)
-UsesClasses.extend(OperatorsClasses)
-UsesClasses.extend(ExtensionsClasses)
-UsesClasses.extend(TemplateClasses)
-UsesClasses.extend(MainClasses)
+UsesClasses.append(SETTING_ManagerPreferences)
+UsesClasses.extend(INTERFACES_Classes)
+UsesClasses.extend(OPERATORS_Classes)
+UsesClasses.extend(EXTENSIONS_Classes)
+UsesClasses.extend(TEMPLATES_Classes)
+UsesClasses.extend(MAIN_Classes)
 
 # Initialization Properties
-
 def Props():
-    
-    MainProps()
-    ExtensionsProps()
-    TemplateProps()
-
+    MAIN_Props()
+    EXTENSIONS_Props()
+    TEMPLATES_Props()
 def delProps():
-    
-    delMainProps()
-    delExtensionsProps()
-    delTemplateProps()
+    MAIN_delProps()
+    EXTENSIONS_delProps()
+    TEMPLATES_delProps()
 
+# After Load
+@bpy.app.handlers.persistent
+def after_load(scene):
+    EXT_clearProperties(scene, bpy.context)
 
-event_handler = object() # Handler for Event
+# Handler for Event
+event_handler = object()
 
-# Register Classes 
+# Register Classes
 def register():
 
     for useClass in UsesClasses:
@@ -76,15 +77,15 @@ def register():
 
     def change_template(context):
         bpy.context.workspace.BSM_Templates = bpy.context.workspace.BSM_Templates # Active update event for property 
-        
     bpy.msgbus.subscribe_rna(
         key=subscribe_to,
         owner=event_handler,
         args=(bpy.context,),
         notify=change_template,
     )
-
     bpy.msgbus.publish_rna(key=subscribe_to)
+    
+    bpy.app.handlers.load_post.append(after_load)
 
 
 def unregister():
@@ -94,6 +95,11 @@ def unregister():
     delProps()
     
     bpy.msgbus.clear_by_owner(event_handler)
+    
+    bpy.app.handlers.load_post.remove(after_load)
 
 if __name__ == "__main__":
     register()
+    
+    
+    

@@ -1,44 +1,42 @@
 import bpy
-from ..defers import editTemplate, registerTemplateExtensions, addTemplate, removeTemplate, addScript, removeScript, editScript, addArgs, editArgs, removeArgs, getListOfScripts, registerClass, addGlobalExtension
-from ..interfaces import *
+from enum import Enum
 
-def get_template_items(self, context):
-    
-    Enum_items = []
-    
-    for template_item in context.scene.BSM_Templates_collection:
-        
-        data = str(template_item.name)
-        item = (data, data, data)
-        
-        Enum_items.append(item)
-        
-    return Enum_items   
+from ..Defers.Control import *
+from ..App.Interfaces import *
 
-def change_template_extensions(self, context):
-    registerTemplateExtensions(context, self.BSM_Templates)
+class TEMPLATES(Enum):
+    templates_add_item = "templates.add_item"
+    templates_remove_item = "templates.remove_item"
+    templates_edit_item = "templates.edit_item"
+    scripts_add_item = "scripts.add_item"
+    scripts_remove_item = "scripts.remove_item"
+    scripts_edit_item = "scripts.edit_item"
+    args_add_item = "args.add_item"
+    args_edit_item = "args.edit_item"
+    args_remove_item = "args.remove_item"
 
-class AddTemplateOperator(bpy.types.Operator):
-    bl_idname = "templates.add_item"
+
+class TEMPLATE_AddTemplateOperator(bpy.types.Operator):
+    bl_idname = TEMPLATES.templates_add_item.value
     bl_label = "Add Template"
 
     def execute(self, context):
 
-        addTemplate(context)
+        CMP_addTemplate(context)
 
         context.scene.BSM_isSave = True
 
         return {'FINISHED'}
-   
-class RemoveTemplateOperator(bpy.types.Operator):
-    bl_idname = "templates.remove_item"
+
+class TEMPLATE_RemoveTemplateOperator(bpy.types.Operator):
+    bl_idname = TEMPLATES.templates_remove_item.value
     bl_label = "Remove Template?"
     
     index: bpy.props.IntProperty()
     
     def execute(self, context):
         
-        removeTemplate(context, self.index)
+        CMP_removeTemplate(context, self.index)
 
         context.scene.BSM_isSave = True
 
@@ -48,8 +46,8 @@ class RemoveTemplateOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_confirm(self, event)
 
-class EditTemplateOperator(bpy.types.Operator):
-    bl_idname = "templates.edit_item"
+class TEMPLATE_EditTemplateOperator(bpy.types.Operator):
+    bl_idname = TEMPLATES.templates_edit_item.value
     bl_label = "Edit Template"
     
     template_index: bpy.props.IntProperty(options={'HIDDEN'})
@@ -60,7 +58,7 @@ class EditTemplateOperator(bpy.types.Operator):
     
     def execute(self, context):
         
-        editTemplate(context, self.template_index, self.name)
+        CMP_editTemplate(context, self.template_index, self.name)
         
         context.scene.BSM_isSave = True
 
@@ -81,8 +79,8 @@ class EditTemplateOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_props_dialog(self)
  
-class AddScriptOperator(bpy.types.Operator):
-    bl_idname = "scripts.add_item"
+class TEMPLATE_AddScriptOperator(bpy.types.Operator):
+    bl_idname = TEMPLATES.scripts_add_item.value
     bl_label = "Add Script"
 
     template_index: bpy.props.IntProperty(options={'HIDDEN'})
@@ -97,7 +95,7 @@ class AddScriptOperator(bpy.types.Operator):
 
     def execute(self, context):
         
-        addScript(context, self.template_index, self.name, self.description, self.icon, self.path)
+        CMP_addScript(context, self.template_index, self.name, self.description, self.icon, self.path)
 
         context.scene.BSM_isSave = True
 
@@ -107,8 +105,8 @@ class AddScriptOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_props_dialog(self)
     
-class RemoveScriptOperator(bpy.types.Operator):
-    bl_idname = "scripts.remove_item"
+class TEMPLATE_RemoveScriptOperator(bpy.types.Operator):
+    bl_idname = TEMPLATES.scripts_remove_item.value
     bl_label = "Remove Script from Template?"
     
     template_index: bpy.props.IntProperty()
@@ -116,7 +114,7 @@ class RemoveScriptOperator(bpy.types.Operator):
     
     def execute(self, context):
         
-        removeScript(context, self.template_index, self.script_index)
+        CMP_removeScript(context, self.template_index, self.script_index)
         
         context.scene.BSM_isSave = True
 
@@ -126,8 +124,8 @@ class RemoveScriptOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_confirm(self, event)
     
-class EditScriptOperator(bpy.types.Operator):
-    bl_idname = "scripts.edit_item"
+class TEMPLATE_EditScriptOperator(bpy.types.Operator):
+    bl_idname = TEMPLATES.scripts_edit_item.value
     bl_label = "Edit Script"
     
     template_index: bpy.props.IntProperty(options={'HIDDEN'})
@@ -143,7 +141,7 @@ class EditScriptOperator(bpy.types.Operator):
     
     def execute(self, context):
         
-        editScript(context, self.template_index, self.script_index, self.name, self.description, self.icon, self.path)
+        CMP_editScript(context, self.template_index, self.script_index, self.name, self.description, self.icon, self.path)
         
         context.scene.BSM_isSave = True
 
@@ -153,8 +151,8 @@ class EditScriptOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_props_dialog(self)
 
-class AddArgsOperator(bpy.types.Operator):
-    bl_idname = "args.add_item"
+class TEMPLATE_AddArgsOperator(bpy.types.Operator):
+    bl_idname = TEMPLATES.args_add_item.value
     bl_label = "Add Arg Item"
 
     template_index: bpy.props.IntProperty(options={'HIDDEN'})
@@ -164,7 +162,7 @@ class AddArgsOperator(bpy.types.Operator):
 
     description: bpy.props.StringProperty(name="Args Description")
 
-    type: bpy.props.EnumProperty(name="Type", items=var_types)
+    type: bpy.props.EnumProperty(name="Type", items=PROPERTY_var_types)
     
     value: bpy.props.StringProperty(name="Object Name", default="0")
 
@@ -174,7 +172,7 @@ class AddArgsOperator(bpy.types.Operator):
         if self.type == "CUSTOM_SELF":
             self.value = ""
         
-        addArgs(context, self.template_index, self.script_index, self.type, self.name, self.description, self.value)
+        CMP_addArgs(context, self.template_index, self.script_index, self.type, self.name, self.description, self.value)
 
         context.scene.BSM_isSave = True
 
@@ -200,8 +198,8 @@ class AddArgsOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_props_dialog(self)
 
-class EditArgsOperator(bpy.types.Operator):
-    bl_idname = "args.edit_item"
+class TEMPLATE_EditArgsOperator(bpy.types.Operator):
+    bl_idname = TEMPLATES.args_edit_item.value
     bl_label = "Edit Arg Item"
     
     template_index: bpy.props.IntProperty(options={'HIDDEN'})
@@ -212,9 +210,9 @@ class EditArgsOperator(bpy.types.Operator):
 
     description: bpy.props.StringProperty(name="Description")
 
-    type: bpy.props.EnumProperty(name="Type", items=var_types)
+    type: bpy.props.EnumProperty(name="Type", items=PROPERTY_var_types)
     
-    value: bpy.props.CollectionProperty(type=Args, options={'HIDDEN'})
+    value: bpy.props.CollectionProperty(type=INTERFACE_Args, options={'HIDDEN'})
     
     def execute(self, context):
         if self.type == "CUSTOM":
@@ -222,7 +220,7 @@ class EditArgsOperator(bpy.types.Operator):
         if self.type == "CUSTOM_SELF":
             self.value[0].custom = ""
         
-        editArgs(context, self.template_index, self.script_index, self.arg_index, self.type, self.name, self.description, self.value[0])
+        CMP_editArgs(context, self.template_index, self.script_index, self.arg_index, self.type, self.name, self.description, self.value[0])
         
         context.scene.BSM_isSave = True
 
@@ -249,8 +247,8 @@ class EditArgsOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_props_dialog(self)
     
-class RemoveArgsOperator(bpy.types.Operator):
-    bl_idname = "args.remove_item"
+class TEMPLATE_RemoveArgsOperator(bpy.types.Operator):
+    bl_idname = TEMPLATES.args_remove_item.value
     bl_label = "Remove Argument from Script?"
     
     template_index: bpy.props.IntProperty(options={'HIDDEN'})
@@ -259,7 +257,7 @@ class RemoveArgsOperator(bpy.types.Operator):
     
     def execute(self, context):
         
-        removeArgs(context, self.template_index, self.script_index, self.arg_index)
+        CMP_removeArgs(context, self.template_index, self.script_index, self.arg_index)
         
         context.scene.BSM_isSave = True
 
@@ -269,33 +267,31 @@ class RemoveArgsOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_confirm(self, event)
     
-TemplateClasses = [
-    AddTemplateOperator,
-    RemoveTemplateOperator,
-    EditTemplateOperator,
-    AddScriptOperator,
-    RemoveScriptOperator,
-    EditScriptOperator,
-    AddArgsOperator,
-    EditArgsOperator,
-    RemoveArgsOperator
+TEMPLATES_Classes = [
+    TEMPLATE_AddTemplateOperator,
+    TEMPLATE_RemoveTemplateOperator,
+    TEMPLATE_EditTemplateOperator,
+    TEMPLATE_AddScriptOperator,
+    TEMPLATE_RemoveScriptOperator,
+    TEMPLATE_EditScriptOperator,
+    TEMPLATE_AddArgsOperator,
+    TEMPLATE_EditArgsOperator,
+    TEMPLATE_RemoveArgsOperator
 ]
 
-def TemplateProps():
-    bpy.types.WorkSpace.BSM_Templates = bpy.props.EnumProperty(items=get_template_items, update=change_template_extensions)
+def TEMPLATES_Props():
+    bpy.types.WorkSpace.BSM_Templates = bpy.props.EnumProperty(items=getTemplateItems, update=changeTemplateExtensions)
     
-    bpy.types.Scene.BSM_Templates_collection = bpy.props.CollectionProperty(type=TemplateName)
+    bpy.types.Scene.BSM_Templates_collection = bpy.props.CollectionProperty(type=INTERFACE_TemplateName)
 
     bpy.types.Scene.BSM_isSave = bpy.props.BoolProperty(default=False)
     
     bpy.types.Scene.BSM_activeObject = bpy.props.PointerProperty(type=bpy.types.Object)
 
-def delTemplateProps():
+def TEMPLATES_delProps():
 
     del bpy.types.WorkSpace.BSM_Templates
     del bpy.types.Scene.BSM_Templates_collection
     del bpy.types.Scene.BSM_isSave
     del bpy.types.Scene.BSM_activeObject
-    
-def clearTemplateProps():
-    pass
+

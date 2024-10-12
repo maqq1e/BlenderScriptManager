@@ -1,17 +1,23 @@
 import bpy
+from enum import Enum
 
-from ..interfaces import Extensions
-from ..defers import getListOfScripts, addGlobalExtension, removeGlobalExtension
+from ..App.Interfaces import INTERFACE_Extensions
+from ..Defers.Control import *
 
-class AddExtensionsOperator(bpy.types.Operator):
-    bl_idname = "extensions.add_item"
+
+class EXTENSIONS(Enum):
+    extensions_add_item = "extensions.add_item"
+    extensions_remove_item = "extensions.remove_item"
+
+class EXTENSION_AddExtensionsOperator(bpy.types.Operator):
+    bl_idname = EXTENSIONS.extensions_add_item.value
     bl_label = "Add Extension"
 
     name: bpy.props.EnumProperty(name="Scripts", items=getListOfScripts)
 
     def execute(self, context):
 
-        addGlobalExtension(context, self.name)
+        CMP_addGlobalExtension(context, self.name)
 
         context.scene.BSM_isSave = True
 
@@ -21,8 +27,8 @@ class AddExtensionsOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_props_dialog(self)
 
-class RemoveExtensionsOperator(bpy.types.Operator):
-    bl_idname = "extensions.remove_item"
+class EXTENSION_RemoveExtensionsOperator(bpy.types.Operator):
+    bl_idname = EXTENSIONS.extensions_remove_item.value
     bl_label = "Remove Extension?"
 
     template_index: bpy.props.IntProperty()
@@ -30,7 +36,7 @@ class RemoveExtensionsOperator(bpy.types.Operator):
 
     def execute(self, context):
 
-        removeGlobalExtension(context, self.extension_index)
+        CMP_removeGlobalExtension(context, self.extension_index)
 
         context.scene.BSM_isSave = True
 
@@ -40,16 +46,13 @@ class RemoveExtensionsOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_confirm(self, event)
 
-ExtensionsClasses = [
-    AddExtensionsOperator,
-    RemoveExtensionsOperator
+EXTENSIONS_Classes = [
+    EXTENSION_AddExtensionsOperator,
+    EXTENSION_RemoveExtensionsOperator
 ]
 
-def ExtensionsProps():
-    bpy.types.Scene.BSM_Extensions_collection = bpy.props.CollectionProperty(type=Extensions)
+def EXTENSIONS_Props():
+    bpy.types.Scene.BSM_Extensions_collection = bpy.props.CollectionProperty(type=INTERFACE_Extensions)
 
-def delExtensionsProps():    
+def EXTENSIONS_delProps():    
     del bpy.types.Scene.BSM_Extensions_collection
-    
-def clearExtensionsProps():
-    bpy.context.scene.BSM_Extensions_collection.clear()

@@ -1,9 +1,65 @@
 import bpy, json, os, sys, importlib, inspect
-from .interfaces import var_types, var_default_value
+
+from ..Defers.Layouts import getPreferences
+from ..App.Datas import *
+
+####### DATAS #######
+
+def makeTemplateSave(self, context):
+    context.scene.BSM_isSave = True
+
+def getTemplatesFiles(self, context):
+    
+    Enum_items = []
+    for templateFile in context.scene.BSM_TemplatesFilesList_collection:
+        data = str(templateFile.name)
+        item = (data, data, data)
+        Enum_items.append(item)
+        
+    return Enum_items
+
+def getListOfScripts(self, context):
+    """Get all scripts from preferences script directory folder"""
+    
+    PREFERENCES = getPreferences()
+
+    directory = PREFERENCES.script_dir
+    
+    Enum_items = []
+    
+    for filename in os.listdir(directory):
+        # Check if the file ends with .py (Python files)
+            if filename.endswith(".py"):
+                data = filename
+                item = (data, data, data)
+                # Print the file name
+                Enum_items.append(item)
+        
+    return Enum_items
+
+# Templates Component
+
+def getTemplateItems(self, context):
+    
+    Enum_items = []
+    
+    for template_item in context.scene.BSM_Templates_collection:
+        
+        data = str(template_item.name)
+        item = (data, data, data)
+        
+        Enum_items.append(item)
+        
+    return Enum_items   
+
+def changeTemplateExtensions(self, context):
+    CMP_registerTemplateExtensions(context, self.BSM_Templates)
+    
+####### EXTERNAL #######
 
 ### GLOBALS Variables Control
 
-def getVarType(types, id_type):
+def EXT_getVarType(types, id_type):
     value = ""
     index = 0
     # I need to find only whole name, ignore substrings
@@ -17,10 +73,10 @@ def getVarType(types, id_type):
         index = index + 1
     return [value, index]
 
-def loadDatas(self, context):
-    # Get the file name from the addon preferences
-    PREFERENCES = bpy.context.preferences.addons["BlenderScriptManager"].preferences
-
+def EXT_loadDatas(self, context):
+    
+    PREFERENCES = getPreferences()
+    
     script_dir = PREFERENCES.script_dir
     
     context.scene.BSM_TemplatesFilesList_collection.clear()
@@ -28,7 +84,7 @@ def loadDatas(self, context):
     for filename in os.listdir(PREFERENCES.script_dir):
         # Check if the file ends with .json (Python files)
         if filename.endswith(".json"):
-            addTemplatesFiles(context, filename)
+            CMP_addTemplatesFiles(context, filename)
     
     if len(context.scene.BSM_TemplatesFilesList_collection) > 0:
         if context.scene.BSM_TemplatesFilesList == "":
@@ -37,7 +93,7 @@ def loadDatas(self, context):
         return None
     
     templates_name = context.scene.BSM_TemplatesFilesList
-    templates_list = jsonImport(script_dir, templates_name)
+    templates_list = EXT_jsonImport(script_dir, templates_name)
     extensions_list = templates_list['extensions']
     templates_list = templates_list['templates']
     
@@ -49,17 +105,17 @@ def loadDatas(self, context):
     script_index = 0
     
     for template in templates_list:
-        addTemplate(context, template['name'])
+        CMP_addTemplate(context, template['name'])
         for script in template['scripts']:
             status = True if script["status"] == 1 else False
-            addScript(context, template_index, 
+            CMP_addScript(context, template_index, 
                         script['name'], 
                         script['description'], 
                         script['icon'], 
                         script['path'], 
                         status)
             for arg in script['args']:
-                addArgs(context, template_index, script_index,
+                CMP_addArgs(context, template_index, script_index,
                         arg['type'], 
                         arg['name'], 
                         arg['description'], 
@@ -68,28 +124,27 @@ def loadDatas(self, context):
             script_index = script_index + 1 # Increment Index 
         
         for extension in template['extensions']:
-            addExtension(context, template_index,
+            CMP_addExtension(context, template_index,
                             extension['name'])
         
         script_index = 0
         template_index = template_index + 1 # Increment Index 
     
     for ext in extensions_list:
-        addGlobalExtension(context, ext['name'])
-    
-    # if len(templates_list) > 0:
-    #    context.workspace.BSM_Templates = context.workspace.BSM_Templates
+        CMP_addGlobalExtension(context, ext['name'])
     
     context.scene.BSM_isSave = False
 
-def clearProperties(self, context):
-    preferences = context.preferences.addons["BlenderScriptManager"].preferences
-    unregisterExtensions(bpy.context, preferences.script_dir)
-    loadDatas(self, bpy.context)
+def EXT_clearProperties(self, context):
+    
+    PREFERENCES = getPreferences()
+    
+    CMP_unregisterExtensions(bpy.context, PREFERENCES.script_dir)
+    EXT_loadDatas(self, bpy.context)
 
 ### JSON Data Control
 
-def serializeDict(templates, ext_data):
+def EXT_serializeDict(templates, ext_data):
 
     result = {
         "templates": [],
@@ -108,7 +163,7 @@ def serializeDict(templates, ext_data):
                 if script.get("args") != None:
                     for arg in script['args']:
                         
-                        key = getVarType(var_types, arg['type'])[0]
+                        key = EXT_getVarType(PROPERTY_var_types, arg['type'])[0]
                         
                         value = arg[key]      
                         
@@ -153,7 +208,7 @@ def serializeDict(templates, ext_data):
 
     return result
 
-def jsonImport(path, file_name):
+def EXT_jsonImport(path, file_name):
     # set output path and file name (set your own)
     save_path = path
     file_name = os.path.join(save_path, file_name)
@@ -167,7 +222,7 @@ def jsonImport(path, file_name):
 
     return variable
 
-def jsonExport(path, file_name, data, isNew = False):
+def EXT_jsonExport(path, file_name, data, isNew = False):
     # encode dict as JSON 
     payload = json.dumps(data, indent=1, ensure_ascii=True)
 
@@ -180,206 +235,28 @@ def jsonExport(path, file_name, data, isNew = False):
         outfile.write(payload + '\n')
         
     if isNew:
-        addTemplatesFiles(bpy.context, file_name)
+        CMP_addTemplatesFiles(bpy.context, file_name)
 
-def deleteFile(path, file_name):
+def EXT_deleteFile(path, file_name):
     file = os.path.join(path, file_name)
     
-    removeTemplatesFiles(bpy.context, file_name)
+    CMP_removeTemplatesFiles(bpy.context, file_name)
     
     os.remove(file)
 
-def renameFile(path, file_name, new_name, extension):
+def EXT_renameFile(path, file_name, new_name, extension):
     old_name = os.path.join(path, file_name) + extension
     new_name = os.path.join(path, new_name) + extension
     os.rename(old_name, new_name)
 
-def checkFileExist(path, file_name):
+def EXT_checkFileExist(path, file_name):
     file = os.path.join(path, file_name)
     
     return os.path.isfile(file)
 
-### Extensions Control
-
-def addGlobalExtension(context, name):
-    extension = context.scene.BSM_Extensions_collection.add()
-    extension.name = name
-
-def removeGlobalExtension(context, extension_index):
-    if len(context.scene.BSM_Extensions_collection) > 0:
-        context.scene.BSM_Extensions_collection.remove(extension_index)
-
-def addExtension(context, template_index, name):
-    template = context.scene.BSM_Templates_collection[template_index]
-    extension = template.extensions.add()
-    
-    extension.name = name
-    
-def removeExtension(context, template_index, extension_index):
-    if len(context.scene.BSM_Templates_collection[template_index].extensions) > 0:
-        context.scene.BSM_Templates_collection[template_index].extensions.remove(extension_index)
-    
-def changeExtensionStatus(context, template_name, extensions_name):
-    extension = context.scene.BSM_Extensions_collection[extensions_name]
-    
-    extension.status = not extension.status
-    
-    template = context.scene.BSM_Templates_collection[template_name]
-    
-    ext_index = template.extensions.find(extensions_name)
-    
-    if ext_index != -1:
-        if not extension.status:
-            template.extensions.remove(ext_index)
-    else:
-        ext = template.extensions.add()
-        ext.name = extensions_name
-
-def registerTemplateExtensions(context, template_index):
-    preferences = context.preferences.addons["BlenderScriptManager"].preferences
-    
-    
-    unregisterExtensions(context, preferences.script_dir)
-    
-    extensions_collection = context.scene.BSM_Extensions_collection
-    
-    template_extensions = context.scene.BSM_Templates_collection[template_index].extensions
-    
-    for ext in template_extensions:
-        extensions_collection[ext.name].status = True
-        registerClass(preferences.script_dir, ext.name) # Register Classes
-
-def unregisterExtensions(context, script_dir):
-    
-    extensions_collection = context.scene.BSM_Extensions_collection
-    
-    for ext in extensions_collection:
-        ext.status = False
-        registerClass(script_dir, ext.name, True) # Unregister Classes
-    
-### Templates Control
-
-def addTemplate(context, new_name = "New Template"):
-
-    if new_name == "New Template":
-        if len(context.scene.BSM_Templates_collection) > 0:
-            new_name = context.scene.BSM_Templates_collection[-1].name + " 1"
-        
-    template = context.scene.BSM_Templates_collection.add()
-
-    template.name = new_name
-
-    context.workspace.BSM_Templates = template.name
-
-def removeTemplate(context, index):
-    if len(context.scene.BSM_Templates_collection) > 0:
-            context.scene.BSM_Templates_collection.remove(index)
-            
-    if len(context.scene.BSM_Templates_collection) > 0:
-        bpy.context.workspace.BSM_Templates = bpy.context.scene.BSM_Templates_collection[0].name
-
-def editTemplate(context, template_index, name):
-    template = context.scene.BSM_Templates_collection[template_index]
-    template.name = name
-
-def addTemplatesFiles(context, new_name):
-        
-    templateFile = context.scene.BSM_TemplatesFilesList_collection.add()
-
-    templateFile.name = new_name
-
-def removeTemplatesFiles(context, name):
-    if len(context.scene.BSM_TemplatesFilesList_collection) > 0:
-        index = context.scene.BSM_TemplatesFilesList_collection.find(name)
-        context.scene.BSM_TemplatesFilesList_collection.remove(index)
-
-### Scripts Control
-
-def addScript(context, template_index, name = "Test", description = "Test Do", icon = "PREFERENCES", path = "Test.py", status=False):
-    template = context.scene.BSM_Templates_collection[template_index]
-    script = template.scripts.add()
-
-    script.name = name
-    script.description = description
-    script.icon = icon
-    script.path = path
-    script.status = status
-
-def removeScript(context, template_index, script_index):
-
-    if len(context.scene.BSM_Templates_collection[template_index].scripts) > 0:
-        context.scene.BSM_Templates_collection[template_index].scripts.remove(script_index)
- 
-def editScript(context, template_index, script_index, name = "Test", description = "Test Do", icon = "PREFERENCES", path = "Test.py"):
-    template = context.scene.BSM_Templates_collection[template_index]
-    script = template.scripts[script_index]
-
-    script.name = name
-    script.description = description
-    script.icon = icon
-    script.path = path
-       
-def getListOfScripts(self, context):
-    """Get all scripts from preferences script directory folder"""
-    preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
-
-    directory = preferences.script_dir
-    
-    Enum_items = []
-    
-    for filename in os.listdir(directory):
-        # Check if the file ends with .py (Python files)
-            if filename.endswith(".py"):
-                data = filename
-                item = (data, data, data)
-                # Print the file name
-                Enum_items.append(item)
-        
-    return Enum_items
-    
-### Arguments Control
-    
-def addArgs(context, template_index, script_index, type, name = "Test Arg", description = "Test Arg Do", value=0):
-    template = context.scene.BSM_Templates_collection[template_index]
-    script = template.scripts[script_index]
-    args = script.args
-    
-    arg = args.add()
-    
-    arg.name = name
-    arg.description = description
-    arg.type = type
-    
-    varType = getVarType(var_types, type)
-    key = varType[0]
-    index = varType[1]
-    
-    if value == 0 or value == "0":
-        value = var_default_value[index]
-    
-    arg[key] = value
-    
-def editArgs(context, template_index, script_index, arg_index, type, name = "Test Arg", description = "Test Arg Do", value=0):
-    template = context.scene.BSM_Templates_collection[template_index]
-    script = template.scripts[script_index]
-    arg = script.args[arg_index]
-    
-    arg.name = name
-    arg.description = description
-    arg.type = type
-    
-    key = getVarType(var_types, type)[0]
-        
-    arg[key] = value[key]
-    
-def removeArgs(context, template_index, script_index, arg_index):
-    template = context.scene.BSM_Templates_collection[template_index]
-    script = template.scripts[script_index]
-    script.args.remove(arg_index)
-
 ### Scrirt Execution
 
-def executeScript(props, filepath):
+def EXT_executeScript(props, filepath):
     # Dynamically import and execute the script
     spec = importlib.util.spec_from_file_location("module.name", filepath)
     module = importlib.util.module_from_spec(spec)
@@ -389,7 +266,7 @@ def executeScript(props, filepath):
     args = {}
     for prop in props:
         # Basic Properties or Cusom Object Properties
-        key = getVarType(var_types, prop.type)[0]
+        key = EXT_getVarType(PROPERTY_var_types, prop.type)[0]
         
         value = prop[key]
         
@@ -423,7 +300,7 @@ def executeScript(props, filepath):
         except Exception as e:
             return [{'ERROR'}, f"Error running main() in {filepath}: {e}"]
         
-def registerClass(filepath, fileName, isUnregister=False):
+def EXT_registerClass(filepath, fileName, isUnregister=False):
     # Full path to the .py file
     py_file_path = os.path.join(filepath, fileName)
     # Ensure the path is in Python's system path
@@ -466,4 +343,165 @@ def registerClass(filepath, fileName, isUnregister=False):
     else:
         for cls in classes:
             bpy.utils.register_class(cls)
+
+####### COMPONENTS #######
+
+### Extensions Control
+
+def CMP_addGlobalExtension(context, name):
+    extension = context.scene.BSM_Extensions_collection.add()
+    extension.name = name
+
+def CMP_removeGlobalExtension(context, extension_index):
+    if len(context.scene.BSM_Extensions_collection) > 0:
+        context.scene.BSM_Extensions_collection.remove(extension_index)
+
+def CMP_addExtension(context, template_index, name):
+    template = context.scene.BSM_Templates_collection[template_index]
+    extension = template.extensions.add()
     
+    extension.name = name
+    
+def CMP_removeExtension(context, template_index, extension_index):
+    if len(context.scene.BSM_Templates_collection[template_index].extensions) > 0:
+        context.scene.BSM_Templates_collection[template_index].extensions.remove(extension_index)
+    
+def CMP_changeExtensionStatus(context, template_name, extensions_name):
+    extension = context.scene.BSM_Extensions_collection[extensions_name]
+    
+    extension.status = not extension.status
+    
+    template = context.scene.BSM_Templates_collection[template_name]
+    
+    ext_index = template.extensions.find(extensions_name)
+    
+    if ext_index != -1:
+        if not extension.status:
+            template.extensions.remove(ext_index)
+    else:
+        ext = template.extensions.add()
+        ext.name = extensions_name
+
+def CMP_registerTemplateExtensions(context, template_index):    
+    PREFERENCES = getPreferences()
+    
+    CMP_unregisterExtensions(context, PREFERENCES.script_dir)
+    
+    extensions_collection = context.scene.BSM_Extensions_collection
+    
+    template_extensions = context.scene.BSM_Templates_collection[template_index].extensions
+    
+    for ext in template_extensions:
+        extensions_collection[ext.name].status = True
+        EXT_registerClass(PREFERENCES.script_dir, ext.name) # Register Classes
+
+def CMP_unregisterExtensions(context, script_dir):
+    
+    extensions_collection = context.scene.BSM_Extensions_collection
+    
+    for ext in extensions_collection:
+        ext.status = False
+        EXT_registerClass(script_dir, ext.name, True) # Unregister Classes
+    
+### Templates Control
+
+def CMP_addTemplate(context, new_name = "New Template"):
+
+    if new_name == "New Template":
+        if len(context.scene.BSM_Templates_collection) > 0:
+            new_name = context.scene.BSM_Templates_collection[-1].name + " 1"
+        
+    template = context.scene.BSM_Templates_collection.add()
+
+    template.name = new_name
+
+    context.workspace.BSM_Templates = template.name
+
+def CMP_removeTemplate(context, index):
+    if len(context.scene.BSM_Templates_collection) > 0:
+            context.scene.BSM_Templates_collection.remove(index)
+            
+    if len(context.scene.BSM_Templates_collection) > 0:
+        bpy.context.workspace.BSM_Templates = bpy.context.scene.BSM_Templates_collection[0].name
+
+def CMP_editTemplate(context, template_index, name):
+    template = context.scene.BSM_Templates_collection[template_index]
+    template.name = name
+
+def CMP_addTemplatesFiles(context, new_name):
+        
+    templateFile = context.scene.BSM_TemplatesFilesList_collection.add()
+
+    templateFile.name = new_name
+
+def CMP_removeTemplatesFiles(context, name):
+    if len(context.scene.BSM_TemplatesFilesList_collection) > 0:
+        index = context.scene.BSM_TemplatesFilesList_collection.find(name)
+        context.scene.BSM_TemplatesFilesList_collection.remove(index)
+
+### Scripts Control
+
+def CMP_addScript(context, template_index, name = "Test", description = "Test Do", icon = "PREFERENCES", path = "Test.py", status=False):
+    template = context.scene.BSM_Templates_collection[template_index]
+    script = template.scripts.add()
+
+    script.name = name
+    script.description = description
+    script.icon = icon
+    script.path = path
+    script.status = status
+
+def CMP_removeScript(context, template_index, script_index):
+
+    if len(context.scene.BSM_Templates_collection[template_index].scripts) > 0:
+        context.scene.BSM_Templates_collection[template_index].scripts.remove(script_index)
+ 
+def CMP_editScript(context, template_index, script_index, name = "Test", description = "Test Do", icon = "PREFERENCES", path = "Test.py"):
+    template = context.scene.BSM_Templates_collection[template_index]
+    script = template.scripts[script_index]
+
+    script.name = name
+    script.description = description
+    script.icon = icon
+    script.path = path
+
+### Arguments Control
+    
+def CMP_addArgs(context, template_index, script_index, type, name = "Test Arg", description = "Test Arg Do", value=0):
+    template = context.scene.BSM_Templates_collection[template_index]
+    script = template.scripts[script_index]
+    args = script.args
+    
+    arg = args.add()
+    
+    arg.name = name
+    arg.description = description
+    arg.type = type
+    
+    varType = EXT_getVarType(PROPERTY_var_types, type)
+    key = varType[0]
+    index = varType[1]
+    
+    if value == 0 or value == "0":
+        value = PROPERTY_var_default_value[index]
+    
+    arg[key] = value
+    
+def CMP_editArgs(context, template_index, script_index, arg_index, type, name = "Test Arg", description = "Test Arg Do", value=0):
+    template = context.scene.BSM_Templates_collection[template_index]
+    script = template.scripts[script_index]
+    arg = script.args[arg_index]
+    
+    arg.name = name
+    arg.description = description
+    arg.type = type
+    
+    key = EXT_getVarType(PROPERTY_var_types, type)[0]
+        
+    arg[key] = value[key]
+    
+def CMP_removeArgs(context, template_index, script_index, arg_index):
+    template = context.scene.BSM_Templates_collection[template_index]
+    script = template.scripts[script_index]
+    script.args.remove(arg_index)
+

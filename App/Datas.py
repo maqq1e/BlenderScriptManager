@@ -1,20 +1,3 @@
-import bpy, os
-
-### Additional Functions
-
-def makeTemplateSave(self, context):
-    context.scene.BSM_isSave = True
-
-def getTemplatesFiles(self, context):
-    
-    Enum_items = []
-    for templateFile in context.scene.BSM_TemplatesFilesList_collection:
-        data = str(templateFile.name)
-        item = (data, data, data)
-        Enum_items.append(item)
-        
-    return Enum_items
-
 ### Datas Variables
 
 icons = [
@@ -837,7 +820,7 @@ icons = [
 ("EVENT_RETURN", "EVENT_RETURN", "", "EVENT_RETURN", 816),
 ("EVENT_SPACEKEY", "EVENT_SPACEKEY", "", "EVENT_SPACEKEY", 817)]
 
-var_types = [
+PROPERTY_var_types = [
     ("BOOL", "Bool", "bool"),
     ("BOOL_TOGGLE", "Bool Toggle", "bool_toggle"),
     ("FLOAT", "Float", "float"),
@@ -850,7 +833,7 @@ var_types = [
     ("CUSTOM_SELF", "Active Object Custom Data", "custom_self"),
 ]
 
-var_default_value = [
+PROPERTY_var_default_value = [
     False,
     False,
     1.5,
@@ -863,7 +846,7 @@ var_default_value = [
     ""
 ]
 
-var_types_options = [
+PROPERTY_var_types_options = [
     {
         "hideName": True,
         "slider":False,
@@ -924,57 +907,4 @@ var_types_options = [
         "toggle":False,
         "icon_only":False,
     },
-]
-
-### Classes
-
-class Args(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-    description: bpy.props.StringProperty()
-    type: bpy.props.StringProperty()
-    bool: bpy.props.BoolProperty(options={'ANIMATABLE'})
-    bool_toggle: bpy.props.BoolProperty(options={'ANIMATABLE'})
-    float: bpy.props.FloatProperty()
-    float_slider: bpy.props.FloatProperty()
-    string: bpy.props.StringProperty(
-        name="Directory",
-        default="",
-        subtype='NONE'
-    )
-    integer: bpy.props.IntProperty()
-    integer_slider: bpy.props.IntProperty()
-    string_path: bpy.props.StringProperty(
-        name="Directory",
-        default="",
-        subtype='DIR_PATH'
-    )
-    custom: bpy.props.StringProperty()
-    custom_self: bpy.props.StringProperty()
-
-class Scripts(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-    description: bpy.props.StringProperty()
-    icon: bpy.props.StringProperty()
-    path: bpy.props.StringProperty()
-    status: bpy.props.BoolProperty()
-    args: bpy.props.CollectionProperty(type=Args)
-
-class Extensions(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-    status: bpy.props.BoolProperty()
-    
-class TemplateName(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty(update=makeTemplateSave)
-    scripts: bpy.props.CollectionProperty(type=Scripts)
-    extensions: bpy.props.CollectionProperty(type=Extensions)
-
-class Files(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty()
-
-InterfaceClasses = [
-    Args,
-    Scripts,
-    Extensions,
-    TemplateName,    
-    Files,
 ]
