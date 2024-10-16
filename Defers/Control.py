@@ -141,6 +141,7 @@ def EXT_clearProperties(self, context):
     
     CMP_unregisterExtensions(bpy.context, PREFERENCES.script_dir)
     EXT_loadDatas(self, bpy.context)
+    CMP_registerTemplateExtensions(context, context.workspace.BSM_Templates)
 
 ### JSON Data Control
 
@@ -388,6 +389,9 @@ def CMP_registerTemplateExtensions(context, template_index):
     CMP_unregisterExtensions(context, PREFERENCES.script_dir)
     
     extensions_collection = context.scene.BSM_Extensions_collection
+    
+    if template_index == "":
+        return None
     
     template_extensions = context.scene.BSM_Templates_collection[template_index].extensions
     

@@ -16,7 +16,7 @@ bl_info = {
     "author": "https://github.com/maqq1e",
     "description": "Easy way manage your custom scripts",
     "blender": (4, 2, 0),
-    "version": (0, 9, 8),
+    "version": (0, 9, 9),
 }
 
 # Preferences Panel
@@ -76,6 +76,8 @@ def register():
     subscribe_to = bpy.types.Window, "workspace"
 
     def change_template(context):
+        if bpy.context.workspace.BSM_Templates == "":
+            return None
         bpy.context.workspace.BSM_Templates = bpy.context.workspace.BSM_Templates # Active update event for property 
     bpy.msgbus.subscribe_rna(
         key=subscribe_to,
