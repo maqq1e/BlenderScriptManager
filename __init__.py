@@ -13,10 +13,10 @@ from .Defers.Control import EXT_clearProperties
 # Addon Info
 bl_info = {
     "name": "Custom Script Manager",
-    "author": "https://github.com/maqq1e",
+    "author": "https://github.com/maqq1e/BlenderScriptManager",
     "description": "Easy way manage your custom scripts",
     "blender": (4, 2, 0),
-    "version": (0, 9, 9),
+    "version": (1, 0, 0),
 }
 
 # Preferences Panel
@@ -32,9 +32,28 @@ class SETTING_ManagerPreferences(bpy.types.AddonPreferences):
         update=EXT_clearProperties
     ) # type: ignore
     
+    links_hide: bpy.props.BoolProperty(default=False)
+    
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "script_dir")
+        row = layout.row()
+        if self.links_hide:
+            row.prop(self, "links_hide", text="Links:", icon="TRIA_DOWN", toggle=True)
+        else:
+            row.prop(self, "links_hide", text="Links:", icon="TRIA_LEFT", toggle=True)
+            
+        if self.links_hide:
+            op = layout.operator('wm.url_open', text="Project Git", icon="URL")
+            op.url = "https://github.com/maqq1e/BlenderScriptManager"        
+            row = layout.row()
+            op = row.operator('wm.url_open', text="Github", icon="URL")
+            op.url = "https://github.com/maqq1e"
+            op = row.operator('wm.url_open', text="Gumroad", icon="URL")
+            op.url = "https://maqq1e.gumroad.com/"
+            op = row.operator('wm.url_open', text="ArtStation", icon="URL")
+            op.url = "https://www.artstation.com/jellystuff"
+
 
 # Initialization Classes
 UsesClasses = []
