@@ -1,13 +1,9 @@
 import bpy
-from enum import Enum
 
 from ..App.Interfaces import INTERFACE_Extensions
 from ..Defers.Control import *
 
-
-class EXTENSIONS(Enum):
-    extensions_add_item = "extensions.add_item"
-    extensions_remove_item = "extensions.remove_item"
+from ..App.Datas import EXTENSIONS
 
 class EXTENSION_AddExtensionsOperator(bpy.types.Operator):
     bl_idname = EXTENSIONS.extensions_add_item.value

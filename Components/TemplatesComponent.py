@@ -1,20 +1,9 @@
 import bpy
-from enum import Enum
 
 from ..Defers.Control import *
 from ..App.Interfaces import *
 
-class TEMPLATES(Enum):
-    templates_add_item = "templates.add_item"
-    templates_remove_item = "templates.remove_item"
-    templates_edit_item = "templates.edit_item"
-    scripts_add_item = "scripts.add_item"
-    scripts_remove_item = "scripts.remove_item"
-    scripts_edit_item = "scripts.edit_item"
-    args_add_item = "args.add_item"
-    args_edit_item = "args.edit_item"
-    args_remove_item = "args.remove_item"
-
+from ..App.Datas import TEMPLATES
 
 class TEMPLATE_AddTemplateOperator(bpy.types.Operator):
     bl_idname = TEMPLATES.templates_add_item.value

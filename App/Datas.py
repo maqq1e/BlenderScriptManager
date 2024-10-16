@@ -1,3 +1,6 @@
+import bpy
+from enum import Enum
+
 ### Datas Variables
 
 icons = [
@@ -908,3 +911,30 @@ PROPERTY_var_types_options = [
         "icon_only":False,
     },
 ]
+
+### Class id_names
+
+class EXTENSIONS(Enum):
+    extensions_add_item = "extensions.add_item"
+    extensions_remove_item = "extensions.remove_item"
+
+class TEMPLATES(Enum):
+    templates_add_item = "templates.add_item"
+    templates_remove_item = "templates.remove_item"
+    templates_edit_item = "templates.edit_item"
+    scripts_add_item = "scripts.add_item"
+    scripts_remove_item = "scripts.remove_item"
+    scripts_edit_item = "scripts.edit_item"
+    args_add_item = "args.add_item"
+    args_edit_item = "args.edit_item"
+    args_remove_item = "args.remove_item"
+
+class OPERATORS(Enum):
+    open_addon_prefs = "operators.open_addon_prefs"
+    create_json_file = "operators.create_json_file"
+    delete_json_file = "operators.delete_json_file"
+    load_templates = "operators.load_templates"
+    save_templates = "operators.save_templates"
+    run_scripts = "operators.run_scripts"
+    register_script = "operators.register_script"
+    edit_template_file = "operators.edit_template_file"

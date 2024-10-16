@@ -1,18 +1,9 @@
 import bpy
-from enum import Enum
 
 from .Interfaces import *
 from ..Defers.Control import *
 
-class OPERATORS(Enum):
-    open_addon_prefs = "operators.open_addon_prefs"
-    create_json_file = "operators.create_json_file"
-    delete_json_file = "operators.delete_json_file"
-    load_templates = "operators.load_templates"
-    save_templates = "operators.save_templates"
-    run_scripts = "operators.run_scripts"
-    register_script = "operators.register_script"
-    edit_template_file = "operators.edit_template_file"
+from .Datas import OPERATORS
 
 # Operator to open the add-on preferences
 class OPERATOR_OpenAddonPreferencesOperator(bpy.types.Operator):

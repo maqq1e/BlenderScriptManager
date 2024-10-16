@@ -6,8 +6,7 @@ from .Defers.Layouts import LAYOUT_multiline, getPreferences
 from .App.Operators import OPERATORS
 from .App.Interfaces import *
 
-from .Components.TemplatesComponent import TEMPLATES
-from .Components.ExtensionsComponent import EXTENSIONS
+from .App.Datas import TEMPLATES, EXTENSIONS
 
 def EXCEPTION_isReady(data, context):
     if data == "":
