@@ -2,6 +2,7 @@ import bpy
 
 from .Interfaces import *
 from ..Defers.Control import *
+from ..Defers.Layouts import getPreferences
 
 from .Datas import OPERATORS
 
@@ -14,8 +15,8 @@ class OPERATOR_OpenAddonPreferencesOperator(bpy.types.Operator):
         # Open the Add-ons preferences tab
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
         bpy.context.preferences.active_section = 'ADDONS'
-        bpy.data.window_managers['WinMan'].addon_search = "Custom Script Manager"
-        bpy.ops.preferences.addon_expand(module = "BlenderScriptManager")
+        bpy.data.window_managers['WinMan'].addon_search = "Blender Script Manager"
+        bpy.ops.preferences.addon_expand(module = "bl_ext.user_default.blender_script_manager")
         return {'FINISHED'}
 
 class OPERATOR_CreateJsonFile(bpy.types.Operator):
@@ -82,7 +83,7 @@ class OPERATOR_SaveTemplates(bpy.types.Operator):
     
     def execute(self, context):
         # Get the file name from the addon preferences
-        preferences = bpy.context.preferences.addons["BlenderScriptManager"].preferences
+        preferences = getPreferences()
         
         templates = context.scene.BSM_Templates_collection
         extensions = context.scene.BSM_Extensions_collection
