@@ -308,7 +308,7 @@ class Settings(BlenderScriptManager, bpy.types.Panel):
         row.prop(context.scene, "BSM_TemplatesFilesList", text="")
         
         edit = row.operator(OPERATORS.edit_template_file.value, text="", icon='TOOL_SETTINGS')
-        edit.path = context.scene.BSM_TemplatesFilesList
+        edit.path = PREFERENCES.script_dir
         file_name = context.scene.BSM_TemplatesFilesList
         edit.template_file_name = file_name[0:file_name.find(".json")]
         

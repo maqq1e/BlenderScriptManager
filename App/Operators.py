@@ -137,11 +137,11 @@ class OPERATOR_EditTemplateFileOperator(bpy.types.Operator):
     bl_idname = OPERATORS.edit_template_file.value
     bl_label = "Edit Template File"
     
-    template_file_name: bpy.props.StringProperty(name="Name")
+    template_file_name: bpy.props.StringProperty()
 
-    new_name: bpy.props.StringProperty(name="Name")
+    new_name: bpy.props.StringProperty()
 
-    path: bpy.props.StringProperty(name="Description")
+    path: bpy.props.StringProperty()
     
     def execute(self, context):
         
