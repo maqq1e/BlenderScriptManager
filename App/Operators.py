@@ -15,8 +15,8 @@ class OPERATOR_OpenAddonPreferencesOperator(bpy.types.Operator):
         # Open the Add-ons preferences tab
         bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
         bpy.context.preferences.active_section = 'ADDONS'
-        bpy.data.window_managers['WinMan'].addon_search = "Blender Script Manager"
-        bpy.ops.preferences.addon_expand(module = "bl_ext.user_default.blender_script_manager")
+        bpy.data.window_managers['WinMan'].addon_search = "Custom Script Manager"
+        bpy.ops.preferences.addon_expand(module = "BlenderScriptManager")
         return {'FINISHED'}
 
 class OPERATOR_CreateJsonFile(bpy.types.Operator):
