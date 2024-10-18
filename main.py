@@ -71,13 +71,13 @@ class TemplatesPanel(BlenderScriptManager, bpy.types.Panel):
         second_row = layout.row()
         second_row.prop(context.workspace, "BSM_Templates", text="")
         
-        op = second_row.operator(TEMPLATES.templates_edit_item.value, text="", icon="TOOL_SETTINGS")
-        op.old_name = context.workspace.BSM_Templates
+        edit = second_row.operator(TEMPLATES.templates_edit_item.value, text="", icon="TOOL_SETTINGS")
+        edit.old_name = context.workspace.BSM_Templates
         
         second_row.operator(TEMPLATES.templates_add_item.value, text="", icon="ADD")
         
         _delete_row = second_row.row()
-        op = _delete_row.operator(TEMPLATES.templates_remove_item.value, text="", icon="REMOVE")
+        delete = _delete_row.operator(TEMPLATES.templates_remove_item.value, text="", icon="REMOVE")
         
         ### If there is not any of templates
         if len(context.scene.BSM_Templates_collection) == 0:
@@ -86,7 +86,8 @@ class TemplatesPanel(BlenderScriptManager, bpy.types.Panel):
             return None
         
         template_index = context.scene.BSM_Templates_collection.find(context.workspace.BSM_Templates) # Get Current Template Index
-        op.index = template_index
+        delete.index = template_index
+        edit.template_index = template_index
 
 class ExtensionPanel(BlenderScriptManager, bpy.types.Panel):
     bl_parent_id = "BSM_PT_Templates"
