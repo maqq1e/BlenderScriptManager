@@ -8,6 +8,6 @@ def LAYOUT_multiline(context, text, parent):
         parent.label(text=text_line)
         
 def getPreferences():
-    data = bpy.context.preferences.addons["BlenderScriptManager"].preferences
+    data = bpy.context.preferences.addons["bl_ext.user_default.blender_script_manager"].preferences
     return data
  
