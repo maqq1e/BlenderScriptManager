@@ -22,6 +22,3 @@
 - Create new .py scripts and save them in target folder
 - Set up extensions and scripts as you like
 - Don't forget check out your script has corrected format
-
-# License
-MIT
