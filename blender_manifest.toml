@@ -1,8 +1,8 @@
 schema_version = "1.0.0"
 
-id = "blender_script_manager"
+id = "custom_script_manager"
 version = "1.0.0"
-name = "Blender Script Manager"
+name = "Custom Script Manager"
 tagline = "This is another extension"
 maintainer = "maqq1e - github.com/maqq1e"
 type = "add-on"
